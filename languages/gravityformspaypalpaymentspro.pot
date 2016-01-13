@@ -1,0 +1,744 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Gravity Forms PayPal Payments Pro Add-On\n"
+"POT-Creation-Date: 2014-10-22 16:21-0500\n"
+"PO-Revision-Date: 2014-10-22 16:21-0500\n"
+"Last-Translator: Dana Cobb <dana@rocketgenius.com>\n"
+"Language-Team: Rocketgenius <customerservice@rocketgenius.com>\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.6.10\n"
+"X-Poedit-Basepath: .\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: _e;__\n"
+"X-Poedit-SearchPath-0: ..\n"
+
+#: ../paypalpaymentspro.php:202
+msgid "Gravity Forms "
+msgstr ""
+
+#: ../paypalpaymentspro.php:209
+msgid ""
+"There is a new version of Gravity Forms PayPal Payments Flow Add-On "
+"available."
+msgstr ""
+
+#: ../paypalpaymentspro.php:209 ../plugin-upgrade.php:56
+#, php-format
+msgid "View version %s Details"
+msgstr ""
+
+#: ../paypalpaymentspro.php:210
+#, php-format
+msgid ""
+"%sRegister%s your copy of Gravity Forms to receive access to automatic "
+"upgrades and support. Need a license key? %sPurchase one now%s."
+msgstr ""
+
+#: ../paypalpaymentspro.php:250 ../paypalpaymentspro.php:1327
+msgid "PayPal Payments Pro"
+msgstr ""
+
+#: ../paypalpaymentspro.php:268 ../paypalpaymentspro.php:360
+#: ../paypalpaymentspro.php:369 ../paypalpaymentspro.php:1428
+msgid "Transaction Type"
+msgstr ""
+
+#: ../paypalpaymentspro.php:268
+msgid ""
+"Select which PayPal Payments Pro transaction type should be used. Products "
+"and Services or Subscription."
+msgstr ""
+
+#: ../paypalpaymentspro.php:269 ../paypalpaymentspro.php:1439
+msgid "Gravity Form"
+msgstr ""
+
+#: ../paypalpaymentspro.php:269
+msgid ""
+"Select which Gravity Forms you would like to integrate with PayPal Payments "
+"Pro."
+msgstr ""
+
+#: ../paypalpaymentspro.php:270 ../paypalpaymentspro.php:1524
+msgid "Customer"
+msgstr ""
+
+#: ../paypalpaymentspro.php:270
+msgid ""
+"Map your Form Fields to the available PayPal Payments Pro customer "
+"information fields."
+msgstr ""
+
+#: ../paypalpaymentspro.php:271
+msgid "Page Style"
+msgstr ""
+
+#: ../paypalpaymentspro.php:271
+msgid ""
+"This option allows you to select which PayPal Payments Pro page style should "
+"be used if you have setup a custom payment page style with PayPal Payments "
+"Pro."
+msgstr ""
+
+#: ../paypalpaymentspro.php:272
+msgid "Continue Button Label"
+msgstr ""
+
+#: ../paypalpaymentspro.php:272
+msgid ""
+"Enter the text that should appear on the continue button once payment has "
+"been completed via PayPal Payments Pro."
+msgstr ""
+
+#: ../paypalpaymentspro.php:273
+msgid "Cancel URL"
+msgstr ""
+
+#: ../paypalpaymentspro.php:273
+msgid ""
+"Enter the URL the user should be sent to should they cancel before "
+"completing their PayPal Payments Pro payment."
+msgstr ""
+
+#: ../paypalpaymentspro.php:274 ../paypalpaymentspro.php:1540
+msgid "Options"
+msgstr ""
+
+#: ../paypalpaymentspro.php:274
+msgid "Turn on or off the available PayPal Payments Pro checkout options."
+msgstr ""
+
+#: ../paypalpaymentspro.php:275 ../paypalpaymentspro.php:1474
+msgid "Recurring Amount"
+msgstr ""
+
+#: ../paypalpaymentspro.php:275
+msgid ""
+"Select which field determines the recurring payment amount, or select 'Form "
+"Total' to use the total of all pricing fields as the recurring amount."
+msgstr ""
+
+#: ../paypalpaymentspro.php:276 ../paypalpaymentspro.php:1481
+msgid "Pay Period"
+msgstr ""
+
+#: ../paypalpaymentspro.php:276
+msgid ""
+"Select pay period.  This determines how often the recurring payment should "
+"occur."
+msgstr ""
+
+#: ../paypalpaymentspro.php:277 ../paypalpaymentspro.php:1496
+msgid "Recurring Times"
+msgstr ""
+
+#: ../paypalpaymentspro.php:277
+msgid ""
+"Select how many times the recurring payment should be made.  The default is "
+"to bill the customer until the subscription is canceled."
+msgstr ""
+
+#: ../paypalpaymentspro.php:278 ../paypalpaymentspro.php:1511
+msgid "Setup Fee"
+msgstr ""
+
+#: ../paypalpaymentspro.php:278
+msgid ""
+"Enable setup fee to charge a one time fee before the recurring payments "
+"begin."
+msgstr ""
+
+#: ../paypalpaymentspro.php:279 ../paypalpaymentspro.php:1556
+msgid "PayPal Condition"
+msgstr ""
+
+#: ../paypalpaymentspro.php:279
+msgid ""
+"When the PayPal condition is enabled, form submissions will only be sent to "
+"PayPal when the condition is met. When disabled, all form submissions will "
+"be sent to PayPal."
+msgstr ""
+
+#: ../paypalpaymentspro.php:305
+msgid "Feed deleted."
+msgstr ""
+
+#: ../paypalpaymentspro.php:316
+msgid "Feeds deleted."
+msgstr ""
+
+#: ../paypalpaymentspro.php:325
+msgid "PayPal Payments Pro Transactions"
+msgstr ""
+
+#: ../paypalpaymentspro.php:327
+msgid "PayPal Payments Pro Forms"
+msgstr ""
+
+#: ../paypalpaymentspro.php:331
+msgid "Add New"
+msgstr ""
+
+#: ../paypalpaymentspro.php:344 ../paypalpaymentspro.php:346
+msgid "Bulk action"
+msgstr ""
+
+#: ../paypalpaymentspro.php:347 ../paypalpaymentspro.php:409
+msgid "Delete"
+msgstr ""
+
+#: ../paypalpaymentspro.php:350
+msgid "Apply"
+msgstr ""
+
+#: ../paypalpaymentspro.php:350
+msgid "Delete selected feeds? "
+msgstr ""
+
+#: ../paypalpaymentspro.php:350 ../paypalpaymentspro.php:409
+msgid "\\'Cancel\\' to stop, \\'OK\\' to delete."
+msgstr ""
+
+#: ../paypalpaymentspro.php:359 ../paypalpaymentspro.php:368
+msgid "Form"
+msgstr ""
+
+#: ../paypalpaymentspro.php:382
+#, php-format
+msgid "To get started, please configure your %sPayPal Payments Pro Settings%s."
+msgstr ""
+
+#: ../paypalpaymentspro.php:392 ../paypalpaymentspro.php:462
+msgid "Active"
+msgstr ""
+
+#: ../paypalpaymentspro.php:392 ../paypalpaymentspro.php:458
+msgid "Inactive"
+msgstr ""
+
+#: ../paypalpaymentspro.php:394 ../paypalpaymentspro.php:397
+msgid "Edit"
+msgstr ""
+
+#: ../paypalpaymentspro.php:401
+msgid "View Stats"
+msgstr ""
+
+#: ../paypalpaymentspro.php:401
+msgid "Stats"
+msgstr ""
+
+#: ../paypalpaymentspro.php:405
+msgid "View Entries"
+msgstr ""
+
+#: ../paypalpaymentspro.php:405
+msgid "Entries"
+msgstr ""
+
+#: ../paypalpaymentspro.php:409
+msgid "Delete this feed? "
+msgstr ""
+
+#: ../paypalpaymentspro.php:417
+msgid "Product and Services"
+msgstr ""
+
+#: ../paypalpaymentspro.php:421
+msgid "Donation"
+msgstr ""
+
+#: ../paypalpaymentspro.php:425
+msgid "Subscription"
+msgstr ""
+
+#: ../paypalpaymentspro.php:438
+#, php-format
+msgid ""
+"You don't have any PayPal Payments Pro feeds configured. Let's go %screate "
+"one%s!"
+msgstr ""
+
+#: ../paypalpaymentspro.php:473
+msgid "Ajax error while updating feed"
+msgstr ""
+
+#: ../paypalpaymentspro.php:515
+msgid "Valid PayPal credentials."
+msgstr ""
+
+#: ../paypalpaymentspro.php:517
+msgid "Invalid PayPal credentials."
+msgstr ""
+
+#: ../paypalpaymentspro.php:534
+msgid "PayPal Payments Pro Settings"
+msgstr ""
+
+#: ../paypalpaymentspro.php:542 ../paypalpaymentspro.php:1604
+msgid "API"
+msgstr ""
+
+#: ../paypalpaymentspro.php:545
+msgid "Live"
+msgstr ""
+
+#: ../paypalpaymentspro.php:548 ../paypalpaymentspro.php:1609
+msgid "Sandbox"
+msgstr ""
+
+#: ../paypalpaymentspro.php:553 ../paypalpaymentspro.php:1613
+msgid "Username"
+msgstr ""
+
+#: ../paypalpaymentspro.php:561 ../paypalpaymentspro.php:1619
+msgid "Password"
+msgstr ""
+
+#: ../paypalpaymentspro.php:569 ../paypalpaymentspro.php:1625
+msgid "Vendor (optional)"
+msgstr ""
+
+#: ../paypalpaymentspro.php:580 ../paypalpaymentspro.php:1634
+msgid "Partner"
+msgstr ""
+
+#: ../paypalpaymentspro.php:590
+msgid "Save Settings"
+msgstr ""
+
+#: ../paypalpaymentspro.php:602
+msgid "Uninstall PayPal Payments Pro Add-On"
+msgstr ""
+
+#: ../paypalpaymentspro.php:607
+msgid "Warning! This operation deletes ALL PayPal Payments Pro Feeds."
+msgstr ""
+
+#: ../paypalpaymentspro.php:607
+msgid ""
+"If you continue, you will not be able to recover any PayPal Payments Pro "
+"data."
+msgstr ""
+
+#: ../paypalpaymentspro.php:609
+msgid ""
+"Warning! ALL settings will be deleted. This cannot be undone. \\'OK\\' to "
+"delete, \\'Cancel\\' to stop')"
+msgstr ""
+
+#: ../paypalpaymentspro.php:767
+msgid "Select a product"
+msgstr ""
+
+#: ../paypalpaymentspro.php:800
+msgid "PayPal Pro"
+msgstr ""
+
+#: ../paypalpaymentspro.php:801
+msgid "PayPal Pro Stats"
+msgstr ""
+
+#: ../paypalpaymentspro.php:805
+msgid "Daily"
+msgstr ""
+
+#: ../paypalpaymentspro.php:806 ../paypalpaymentspro.php:1484
+msgid "Weekly"
+msgstr ""
+
+#: ../paypalpaymentspro.php:807 ../paypalpaymentspro.php:1488
+msgid "Monthly"
+msgstr ""
+
+#: ../paypalpaymentspro.php:828
+msgid "No payments have been made yet."
+msgstr ""
+
+#: ../paypalpaymentspro.php:891
+msgid "Week "
+msgstr ""
+
+#: ../paypalpaymentspro.php:911
+msgid "Total Orders"
+msgstr ""
+
+#: ../paypalpaymentspro.php:916
+msgid "Total Donations"
+msgstr ""
+
+#: ../paypalpaymentspro.php:922
+msgid "Active Subscriptions"
+msgstr ""
+
+#: ../paypalpaymentspro.php:930
+msgid "Total Revenue"
+msgstr ""
+
+#: ../paypalpaymentspro.php:949
+msgid ""
+"** Free trial transactions will only be reflected in the graph after the "
+"first payment is made (i.e. after trial period ends)"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1003 ../paypalpaymentspro.php:1069
+#: ../paypalpaymentspro.php:1138
+msgid "New Subscriptions"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1003 ../paypalpaymentspro.php:1069
+#: ../paypalpaymentspro.php:1138
+msgid "Renewals"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1006 ../paypalpaymentspro.php:1072
+#: ../paypalpaymentspro.php:1141
+msgid "Orders"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1009 ../paypalpaymentspro.php:1075
+#: ../paypalpaymentspro.php:1144
+msgid "Revenue"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1028
+msgid "Orders Today"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1032
+msgid "Donations Today"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1036
+msgid "Subscriptions Today"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1040
+msgid "Revenue Today"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1075
+msgid "Week"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1095
+msgid "Orders this Week"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1099
+msgid "Donations this Week"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1103
+msgid "Subscriptions this Week"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1108
+msgid "Revenue this Week"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1163
+msgid "Orders this Month"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1167
+msgid "Donations this Month"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1171
+msgid "Subscriptions this Month"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1175
+msgid "Revenue this Month"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1189
+msgid "Jan"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1189
+msgid "Feb"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1189
+msgid "Mar"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1189
+msgid "Apr"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1189
+msgid "May"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1189
+msgid "Jun"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1189
+msgid "Jul"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1189
+msgid "Aug"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1189
+msgid "Sep"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1189
+msgid "Oct"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1189
+msgid "Nov"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1189
+msgid "Dec"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1204
+msgid "Cancel Subscription"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1204
+msgid ""
+"Warning! This subscription will be canceled. This cannot be undone. \\'OK\\' "
+"to cancel subscription, \\'Cancel\\' to stop"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1219
+msgid "Canceled"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1225
+msgid "The subscription could not be canceled. Please try again later."
+msgstr ""
+
+#: ../paypalpaymentspro.php:1328
+msgid "PayPal Payments Pro Transaction Settings"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1402
+#, php-format
+msgid "Feed Updated. %sback to list%s"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1421
+msgid ""
+"There was an issue saving your feed. Please address the errors below and try "
+"again."
+msgstr ""
+
+#: ../paypalpaymentspro.php:1431
+msgid "Select a transaction type"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1432
+msgid "Products and Services"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1433
+msgid "Subscriptions"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1443
+msgid "Select a form"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1461
+msgid ""
+"The form selected does not have any Product fields. Please add a Product "
+"field to the form and try again."
+msgstr ""
+
+#: ../paypalpaymentspro.php:1464
+msgid ""
+"The form selected does not have any Donation fields. Please add a Donation "
+"field to the form and try again."
+msgstr ""
+
+#: ../paypalpaymentspro.php:1485
+msgid "Every Two Weeks"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1486
+msgid "Twice Every Month"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1487
+msgid "Every Four Weeks"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1489
+msgid "Quarterly"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1490
+msgid "Twice Every Year"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1491
+msgid "Yearly"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1498
+msgid "Infinite"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1513 ../paypalpaymentspro.php:1563
+msgid "Enable"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1542
+msgid "Update Post when subscription is cancelled."
+msgstr ""
+
+#: ../paypalpaymentspro.php:1545
+msgid "Mark Post as Draft"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1546
+msgid "Delete Post"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1571
+msgid "Send to PayPal if "
+msgstr ""
+
+#: ../paypalpaymentspro.php:1575
+msgid "is"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1576
+msgid "is not"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1577
+msgid "greater than"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1578
+msgid "less than"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1579
+msgid "contains"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1580
+msgid "starts with"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1581
+msgid "ends with"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1586
+msgid ""
+"To create a registration condition, your form must have a field supported by "
+"conditional logic."
+msgstr ""
+
+#: ../paypalpaymentspro.php:1596
+msgid "API Settings"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1598
+msgid "Override Default Settings"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1606
+msgid "Production"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1643
+msgid "  Save  "
+msgstr ""
+
+#: ../paypalpaymentspro.php:1643
+msgid "Update"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1644
+msgid "Cancel"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1686
+msgid "Ajax error while selecting a form"
+msgstr ""
+
+#: ../paypalpaymentspro.php:1841
+msgid "Enter value"
+msgstr ""
+
+#: ../paypalpaymentspro.php:2284 ../paypalpaymentspro.php:2288
+#: ../paypalpaymentspro.php:2292 ../paypalpaymentspro.php:2297
+#: ../paypalpaymentspro.php:2301
+msgid "<!-- Payment Error: "
+msgstr ""
+
+#: ../paypalpaymentspro.php:2402
+#, php-format
+msgid "Subscription payment has been made. Amount: %s. Subscriber Id: %s"
+msgstr ""
+
+#: ../paypalpaymentspro.php:2414
+#, php-format
+msgid ""
+"Subscription has successfully completed its billing schedule. Subscriber Id: "
+"%s"
+msgstr ""
+
+#: ../paypalpaymentspro.php:2422 ../paypalpaymentspro.php:2428
+#, php-format
+msgid ""
+"Subscription was cancelled due to transaction failures. Subscriber Id: %s"
+msgstr ""
+
+#: ../paypalpaymentspro.php:2471
+#, php-format
+msgid ""
+"Subscription has been created and initial payment will be made %s. Amount: "
+"%s. Subscriber Id: %s"
+msgstr ""
+
+#: ../paypalpaymentspro.php:2476
+#, php-format
+msgid "Setup fee payment has been made. Amount: %s. Subscriber Id: %s"
+msgstr ""
+
+#: ../paypalpaymentspro.php:2545
+msgid ""
+"You don't have adequate permission to uninstall the PayPal Payments Pro Add-"
+"On."
+msgstr ""
+
+#: ../paypalpaymentspro.php:2590
+msgid "PayPal Fields"
+msgstr ""
+
+#: ../paypalpaymentspro.php:2590
+msgid "Form Fields"
+msgstr ""
+
+#: ../paypalpaymentspro.php:2626
+msgid "Select a field"
+msgstr ""
+
+#: ../paypalpaymentspro.php:2638
+msgid "Form Total"
+msgstr ""
+
+#: ../plugin-upgrade.php:75
+#, php-format
+msgid "Oops!! Something went wrong.%sPlease try again or %scontact us%s."
+msgstr ""
