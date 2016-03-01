@@ -1,15 +1,8 @@
 ------------------------------------------------------------
-Version 1.8.1        
-	- Fixed fatal error in API settings checking.
-                                                                                                            
-------------------------------------------------------------
-Version 1.8
-    - Fixed an issue with the payment details panel on the entry detail page.
-	- Fixed an issue with the form validation where the confirmation is not displayed when the amount is zero.
-	- Fixed some PHP warnings that are displayed on the feed settings page when the API settings are not overridden.
-	- Fixed some PHP warnings when the form is submitted.
-	- Fixed PHP fatal error when Gravity Forms is deactivated while this add-on is still activated (e.g. doing manual Gravity Forms update).
-	- Fixed the functions used by the mwp_premium_update_notification and mwp_premium_perform_update hooks so that the new_version element in the array returns the plugin's version instead of Gravity Forms'
+Version 2.0
+    - Completed Add-On Framework migration.
+	- Added the $submission_data, $feed, and $entry parameters to the gform_paypalpaymentspro_args_before_payment and gform_paypalpaymentspro_args_before_subscription filters.
+	- Added support for sending notifications on payment/subscription events. Configured on the edit notification page using the 'Event' setting.
 
 ------------------------------------------------------------
 Version 1.7
@@ -25,7 +18,7 @@ Version 1.6
 Version 1.5
 	- Updated the Password entry in the settings page to hide the value of password from the browser when inspecting the element.
 	- Fixed invalid function call.
-
+	
 ------------------------------------------------------------
 Version 1.4
 	- Added PayPal partner integration.
