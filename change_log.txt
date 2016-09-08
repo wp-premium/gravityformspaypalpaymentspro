@@ -1,4 +1,11 @@
 ------------------------------------------------------------
+Version 2.1
+    - Updated logging statements.
+    - Updated to abort authorize()/subscribe() before sending request to PayPal if card number not provided.
+    - Fixed an issue with the API override settings.
+    - Fixed an issue with check_status() not passing the $action['type'] for use with the related hooks in the framework.
+
+------------------------------------------------------------
 Version 2.0
     - Completed Add-On Framework migration.
 	- Added the $submission_data, $feed, and $entry parameters to the gform_paypalpaymentspro_args_before_payment and gform_paypalpaymentspro_args_before_subscription filters.
