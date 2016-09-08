@@ -116,8 +116,8 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 	/**
 	 * Define the markup for the password type field.
 	 *
-	 * @param array $field The field properties.
-	 * @param bool|true $echo Should the setting markup be echoed.
+	 * @param array     $field The field properties.
+	 * @param bool|true $echo  Should the setting markup be echoed.
 	 *
 	 * @return string|void
 	 */
@@ -141,8 +141,8 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 	/**
 	 * Define the markup for the vendor type field.
 	 *
-	 * @param array $field The field properties.
-	 * @param bool|true $echo Should the setting markup be echoed.
+	 * @param array     $field The field properties.
+	 * @param bool|true $echo  Should the setting markup be echoed.
 	 *
 	 * @return string|void
 	 */
@@ -165,8 +165,8 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 	/**
 	 * Define the markup for the partner type field.
 	 *
-	 * @param array $field The field properties.
-	 * @param bool|true $echo Should the setting markup be echoed.
+	 * @param array     $field The field properties.
+	 * @param bool|true $echo  Should the setting markup be echoed.
 	 *
 	 * @return string|void
 	 */
@@ -348,10 +348,10 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 	/**
 	 * Returns the markup for the change post status checkbox item.
 	 *
-	 * @param array $choice The choice properties.
+	 * @param array  $choice     The choice properties.
 	 * @param string $attributes The attributes for the input tag.
-	 * @param string $value Currently selection (1 if field has been checked. 0 or null otherwise).
-	 * @param string $tooltip The tooltip for this checkbox item.
+	 * @param string $value      Currently selection (1 if field has been checked. 0 or null otherwise).
+	 * @param string $tooltip    The tooltip for this checkbox item.
 	 *
 	 * @return string
 	 */
@@ -422,7 +422,7 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 	 * Handle cancelling the subscription from the entry detail page.
 	 *
 	 * @param array $entry The entry object currently being processed.
-	 * @param array $feed The feed object currently being processed.
+	 * @param array $feed  The feed object currently being processed.
 	 *
 	 * @return bool
 	 */
@@ -434,7 +434,7 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 		               'ACTION'        => 'C'
 		);
 
-		$settings = $this->get_plugin_settings();
+		$settings = $this->get_api_settings( $feed );
 		$response = $this->post_to_payflow( $args, $settings, $entry['form_id'] );
 
 		if ( ! empty( $response ) && $response['RESULT'] == '0' ) {
@@ -468,10 +468,10 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 	/**
 	 * Authorize and capture the transaction for the product & services type feed.
 	 *
-	 * @param array $feed The feed object currently being processed.
+	 * @param array $feed            The feed object currently being processed.
 	 * @param array $submission_data The customer and transaction data.
-	 * @param array $form The form object currently being processed.
-	 * @param array $entry The entry object currently being processed.
+	 * @param array $form            The form object currently being processed.
+	 * @param array $entry           The entry object currently being processed.
 	 *
 	 * @return array
 	 */
@@ -489,15 +489,22 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 		 * @since 1.0.0
 		 * @since 2.0.0 Added the $submission_data, $feed, and $entry parameters.
 		 *
-		 * @param array $args The transaction properties.
-		 * @param int $form_id The ID of the form currently being processed.
+		 * @param array $args            The transaction properties.
+		 * @param int   $form_id         The ID of the form currently being processed.
 		 * @param array $submission_data The customer and transaction data.
-		 * @param array $feed The feed object currently being processed.
-		 * @param array $entry The entry object currently being processed.
+		 * @param array $feed            The feed object currently being processed.
+		 * @param array $entry           The entry object currently being processed.
 		 */
 		$args = apply_filters( 'gform_paypalpaymentspro_args_before_payment', $args, $form['id'], $submission_data, $feed, $entry );
 
-		$settings = $this->get_plugin_settings();
+		if ( empty( $args['ACCT'] ) ) {
+			return array(
+				'is_authorized' => false,
+				'error_message' => esc_html__( 'Please enter your credit card information.', 'gravityformspaypalpaymentspro' ),
+			);
+		}
+
+		$settings = $this->get_api_settings( $feed );
 		$response = $this->post_to_payflow( $args, $settings, $form['id'] );
 
 		if ( isset( $response['RESULT'] ) && $response['RESULT'] == 0 ) {
@@ -532,10 +539,10 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 	/**
 	 * Create a recurring profile for the user and return any errors which occur.
 	 *
-	 * @param array $feed The feed object currently being processed.
+	 * @param array $feed            The feed object currently being processed.
 	 * @param array $submission_data The customer and transaction data.
-	 * @param array $form The form object currently being processed.
-	 * @param array $entry The entry object currently being processed.
+	 * @param array $form            The form object currently being processed.
+	 * @param array $entry           The entry object currently being processed.
 	 *
 	 * @return array
 	 */
@@ -567,16 +574,23 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 		 * @since 1.0.0
 		 * @since 2.0.0 Added the $submission_data, $feed, and $entry parameters.
 		 *
-		 * @param array $subscription The subscription transaction properties.
-		 * @param int $form_id The ID of the form currently being processed.
+		 * @param array $subscription    The subscription transaction properties.
+		 * @param int   $form_id         The ID of the form currently being processed.
 		 * @param array $submission_data The customer and transaction data.
-		 * @param array $feed The feed object currently being processed.
-		 * @param array $entry The entry object currently being processed.
+		 * @param array $feed            The feed object currently being processed.
+		 * @param array $entry           The entry object currently being processed.
 		 */
 		$subscription = apply_filters( 'gform_paypalpaymentspro_args_before_subscription', $subscription, $form['id'], $submission_data, $feed, $entry );
 
+		if ( empty( $subscription['ACCT'] ) ) {
+			return array(
+				'is_success' => false,
+				'error_message' => esc_html__( 'Please enter your credit card information.', 'gravityformspaypalpaymentspro' ),
+			);
+		}
+
 		$this->log_debug( __METHOD__ . '(): Creating recurring profile.' );
-		$settings = $this->get_plugin_settings();
+		$settings = $this->get_api_settings( $feed );
 		$response = $this->post_to_payflow( $subscription, $settings, $form['id'] );
 
 		if ( $response['RESULT'] == 0 ) {
@@ -663,7 +677,7 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 					$profile_status_request['ORIGPROFILEID'] = $subscription_id;
 					//$profile_status_request['PAYMENTHISTORY'] = 'Y';
 
-					$settings       = $this->get_plugin_settings();
+					$settings       = $this->get_api_settings( $feed );
 					$profile_status = $this->post_to_payflow( $profile_status_request, $settings, $form_id );
 
 					$status          = $profile_status['STATUS'];
@@ -683,8 +697,10 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 								gform_update_meta( $entry_id, 'subscription_payment_count', $new_payment_count );
 								gform_update_meta( $entry_id, 'subscription_payment_date', $new_payment_date );
 
-								$action = array( 'amount'          => $new_payment_amount,
-								                 'subscription_id' => $subscription_id,
+								$action = array(
+									'amount'          => $new_payment_amount,
+									'subscription_id' => $subscription_id,
+									'type'            => 'add_subscription_payment'
 								);
 								$this->add_subscription_payment( $entry, $action );
 
@@ -696,7 +712,10 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 
 						case 'expired' :
 
-							$action = array( 'subscription_id' => $subscription_id );
+							$action = array(
+								'subscription_id' => $subscription_id,
+								'type'            => 'expire_subscription'
+							);
 							$this->expire_subscription( $entry, $action );
 
 							//deprecated
@@ -725,6 +744,34 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 
 
 	// # HELPERS -------------------------------------------------------------------------------------------------------
+
+	/**
+	 * Retrieve the settings to use when making the request to PayPal API.
+	 * 
+	 * @param bool|array $feed False or the feed currently being processed.
+	 *
+	 * @return array
+	 */
+	public function get_api_settings( $feed = false ) {
+		if ( ! $feed ) {
+			$feed = $this->current_feed;
+		}
+
+		if ( $feed && rgars( $feed, 'meta/apiSettingsEnabled' ) ) {
+			$meta     = $feed['meta'];
+			$settings = array(
+				'mode'     => rgar( $meta, 'overrideMode' ),
+				'username' => rgar( $meta, 'overrideUsername' ),
+				'password' => rgar( $meta, 'overridePassword' ),
+				'vendor'   => rgar( $meta, 'overrideVendor' ),
+				'partner'  => rgar( $meta, 'overridePartner' ),
+			);
+		} else {
+			$settings = $this->get_plugin_settings();
+		}
+
+		return $settings;
+	}
 
 	/**
 	 * Maybe validate the override credentials.
@@ -813,9 +860,9 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 	/**
 	 * Post to the Payflow API.
 	 *
-	 * @param array $nvp The transaction arguments.
-	 * @param array $settings The plugin settings.
-	 * @param null|int $form_id The ID of the current Form.
+	 * @param array    $nvp      The transaction arguments.
+	 * @param array    $settings The plugin settings.
+	 * @param null|int $form_id  The ID of the current Form.
 	 *
 	 * @return array
 	 */
@@ -872,7 +919,11 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 			// Set the API operation, version, and API signature in the request.
 			$nvpreq = "VENDOR=$Vendor&PARTNER=$Partner&PWD=$API_Password&USER=$API_UserName&$nvpstr";
 
-			$this->log_debug( __METHOD__ . "(): Sending request to PayPal - URL: {$API_Endpoint} Request: {$nvpreq}" );
+			$this->log_debug( __METHOD__ . "(): Sending request to PayPal - URL: {$API_Endpoint}." );
+
+			if ( apply_filters( 'gform_paypalpaymentspro_log_api_request', false ) ) {
+				$this->log_debug( __METHOD__ . "(): Request: {$nvpreq}." );
+			}
 
 			// Set the request as a POST FIELD for curl.
 			curl_setopt( $ch, CURLOPT_POSTFIELDS, $nvpreq );
@@ -907,14 +958,18 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 	/**
 	 * Prepare the transaction arguments.
 	 *
-	 * @param array $feed The feed object currently being processed.
+	 * @param array $feed            The feed object currently being processed.
 	 * @param array $submission_data The customer and transaction data.
-	 * @param array $form The form object currently being processed.
-	 * @param array $entry The entry object currently being processed.
+	 * @param array $form            The form object currently being processed.
+	 * @param array $entry           The entry object currently being processed.
 	 *
 	 * @return array
 	 */
 	public function prepare_credit_card_transaction( $feed, $submission_data, $form, $entry ) {
+
+		$feed_name = rgar( $feed['meta'], 'feedName' );
+		$this->log_debug( __METHOD__ . "(): Preparing transaction arguments based on feed #{$feed['id']} - {$feed_name}." );
+		$this->log_debug( __METHOD__ . '(): $submission_data line_items => ' . print_r( $submission_data['line_items'], 1 ) );
 
 		// Billing Information
 		$card_number     = $submission_data['card_number'];
@@ -1001,7 +1056,7 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 	/**
 	 * Convert feed into config for hooks backwards compatibility.
 	 *
-	 * @param array $feed The current feed object.
+	 * @param array $feed            The current feed object.
 	 * @param array $submission_data The customer and transaction data.
 	 *
 	 * @return array
