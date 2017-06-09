@@ -57,7 +57,7 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 	 * @return array
 	 */
 	public function plugin_settings_fields() {
-		$description = '<p style="text-align: left;">' . sprintf( esc_html__( 'PayPal Payments Pro is a merchant account and gateway in one. Use Gravity Forms to collect payment information and automatically integrate to your PayPal Payments Pro account. If you don\'t have a PayPal Payments Pro account, you can %ssign up for one here%s', 'gravityformspaypalpaymentspro' ), '<a href="https://registration.paypal.com/welcomePage.do?bundleCode=C3&country=US&partner=PayPal" target="_blank">', '</a>' ) . '</p>';
+		$description = '<p style="text-align: left;">' . sprintf( esc_html__( 'PayPal Payments Pro is a merchant account and gateway in one. Use Gravity Forms to collect payment information and automatically integrate to your PayPal Payments Pro account. If you don\'t have a PayPal Payments Pro account, you can %ssign up for one here.%s', 'gravityformspaypalpaymentspro' ), '<a href="https://registration.paypal.com/welcomePage.do?bundleCode=C3&country=US&partner=PayPal" target="_blank">', '</a>' ) . '</p>';
 		return array(
 			array(
 				'description' => $description,
@@ -887,8 +887,28 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 			$ch = curl_init();
 			curl_setopt( $ch, CURLOPT_URL, $API_Endpoint );
 			curl_setopt( $ch, CURLOPT_VERBOSE, 1 );
-			curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
-			curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, false );
+
+
+			/***
+			 * Determines if the cURL CURLOPT_SSL_VERIFYPEER option is enabled.
+			 *
+			 * @since 2.2
+			 *
+			 * @param bool is_enabled True to enable peer verification. False to bypass peer verification. Defaults to true.
+			 */
+			$verify_peer = apply_filters( 'gform_paypalpaymentspro_verifypeer', true );
+			curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, $verify_peer );
+
+			/***
+			 * Determines if the cURL CURLOPT_SSL_VERIFYHOST option is enabled.
+			 *
+			 * @since 2.2
+			 *
+			 * @param bool is_enabled True to enable host verification. False to bypass host verification. Defaults to true.
+			 */
+			$verify_host = apply_filters( 'gform_paypalpaymentspro_verifyhost', true );
+			curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, $verify_host );
+
 			curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
 			curl_setopt( $ch, CURLOPT_POST, 1 );
 
