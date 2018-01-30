@@ -17,11 +17,14 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 
 	/**
 	 * Members plugin integration
+	 *
+	 * @access protected
+	 * @var    array
 	 */
 	protected $_capabilities = array(
-			'gravityforms_paypalpaymentspro',
-			'gravityforms_paypalpaymentspro_uninstall',
-			'gravityforms_paypalpaymentspro_plugin_page'
+		'gravityforms_paypalpaymentspro',
+		'gravityforms_paypalpaymentspro_uninstall',
+		'gravityforms_paypalpaymentspro_plugin_page',
 	);
 
 	/**
@@ -31,7 +34,7 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 	protected $_capabilities_form_settings = 'gravityforms_paypalpaymentspro';
     protected $_capabilities_uninstall = 'gravityforms_paypalpaymentspro_uninstall';
 	protected $_capabilities_plugin_page = 'gravityforms_paypalpaymentspro_plugin_page';
-	
+
 	private static $_instance = null;
 
 	/**
@@ -205,12 +208,12 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 	public function feed_settings_fields() {
 		$default_settings = parent::feed_settings_fields();
 
-		//remove default options before adding custom
+		// Remove default options before adding custom.
 		$default_settings = parent::remove_field( 'options', $default_settings );
 		$default_settings = parent::remove_field( 'billingCycle', $default_settings );
 		$default_settings = parent::remove_field( 'trial', $default_settings );
 
-		//add pay period if subscription
+		// Add pay period if subscription.
 		if ( $this->get_setting( 'transactionType' ) == 'subscription' ) {
 			$pay_period_field = array(
 				'name'     => 'payPeriod',
@@ -230,7 +233,7 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 			);
 			$default_settings = $this->add_field_after( 'recurringAmount', $pay_period_field, $default_settings );
 
-			//Add post fields if form has a post
+			// Add post fields if form has a post.
 			$form = $this->get_current_form();
 
 			if ( GFCommon::has_post_field( $form['fields'] ) ) {
@@ -383,13 +386,13 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 				array(
 						'name'     => 'lastName',
 						'label'    => esc_html__( 'Last Name', 'gravityformspaypalpaymentspro' ),
-						'required' => false
+						'required' => false,
 				),
 				array(
 						'name'     => 'firstName',
 						'label'    => esc_html__( 'First Name', 'gravityformspaypalpaymentspro' ),
-						'required' => false
-				)
+						'required' => false,
+				),
 		);
 
 		return array_merge( $fields, parent::billing_info_fields() );
@@ -416,7 +419,7 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 		);
 	}
 
-	//-------- Entry Detail ---------
+	// -------- Entry Detail ---------
 
 	/**
 	 * Handle cancelling the subscription from the entry detail page.
@@ -477,10 +480,10 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 	 */
 	public function authorize( $feed, $submission_data, $form, $entry ) {
 
-		// Credit Card Information
+		// Credit Card Information.
 		$args = $this->prepare_credit_card_transaction( $feed, $submission_data, $form, $entry );
 
-		// setting up sale transaction parameters
+		// Setting up sale transaction parameters.
 		$args['TRXTYPE'] = 'S';
 
 		/**
@@ -509,26 +512,31 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 
 		if ( isset( $response['RESULT'] ) && $response['RESULT'] == 0 ) {
 			$this->log_debug( __METHOD__ . "(): Funds captured successfully. Amount: {$args['AMT']}. Transaction Id: {$response['PNREF']}." );
-			$captured_payment = array( 'is_success'     => true,
-			                           'error_message'  => '',
-			                           'transaction_id' => $response['PNREF'],
-			                           'amount'         => $args['AMT']
+			$captured_payment = array(
+				'is_success'     => true,
+				'error_message'  => '',
+				'transaction_id' => $response['PNREF'],
+				'amount'         => $args['AMT'],
 			);
-			$auth             = array( 'is_authorized'    => true,
-			                           'transaction_id'   => $response['PNREF'],
-			                           'captured_payment' => $captured_payment
+			$auth = array(
+				'is_authorized'    => true,
+				'transaction_id'   => $response['PNREF'],
+				'captured_payment' => $captured_payment,
 			);
 
 			$config = $this->get_config( $feed, $submission_data );
 
-			// deprecated
+			/**
+			 * @deprecated
+			 */
 			do_action( 'gform_paypalpaymentspro_post_capture', $args['AMT'], $entry, $form, $config );
 
 		} else {
 			$this->log_error( __METHOD__ . '(): Funds could not be captured.' );
-			$auth = array( 'is_success'     => false,
-			               'transaction_id' => $response['PNREF'],
-			               'error_message'  => $response['RESPMSG']
+			$auth = array(
+				'is_success'     => false,
+				'transaction_id' => $response['PNREF'],
+				'error_message'  => $response['RESPMSG'],
 			);
 		}
 
@@ -550,12 +558,12 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 
 		$subscription = $this->prepare_credit_card_transaction( $feed, $submission_data, $form, $entry );
 
-		//setting up recurring transaction parameters
+		// Setting up recurring transaction parameters
 		$subscription['TRXTYPE'] = 'R';
 		$subscription['ACTION']  = 'A';
 
 		$subscription['START']             = date( 'mdY', mktime( 0, 0, 0, date( 'm' ), date( 'd' ) + 1, date( 'y' ) ) );
-		$subscription['PROFILENAME']       = $subscription['FIRSTNAME'] . " " . $subscription['LASTNAME'];
+		$subscription['PROFILENAME']       = $subscription['FIRSTNAME'] . ' ' . $subscription['LASTNAME'];
 		$subscription['MAXFAILEDPAYMENTS'] = '0';
 		$subscription['PAYPERIOD']         = $feed['meta']['payPeriod'];
 		$subscription['TERM']              = $feed['meta']['recurringTimes'];
@@ -602,18 +610,19 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 				$captured_payment    = array(
 						'is_success'     => true,
 						'transaction_id' => rgar( $response, 'RPREF' ),
-						'amount'         => $submission_data['setup_fee']
+						'amount'         => $submission_data['setup_fee'],
 				);
 				$subscription_result = array(
 						'is_success'       => true,
 						'subscription_id'  => $subscription_id,
 						'captured_payment' => $captured_payment,
-						'amount'           => $subscription['AMT']
+						'amount'           => $subscription['AMT'],
 				);
 			} else {
-				$subscription_result = array( 'is_success'      => true,
-				                              'subscription_id' => $subscription_id,
-				                              'amount'          => $subscription['AMT']
+				$subscription_result = array(
+					'is_success'      => true,
+					'subscription_id' => $subscription_id,
+					'amount'          => $subscription['AMT'],
 				);
 			}
 
@@ -651,9 +660,14 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 				// finding leads with a late payment date
 				global $wpdb;
 
+				// Get entry table names and entry ID column.
+				$entry_table      = self::get_entry_table_name();
+				$entry_meta_table = self::get_entry_meta_table_name();
+				$entry_id_column  = version_compare( self::get_gravityforms_db_version(), '2.3-dev-1', '<' ) ? 'lead_id' : 'entry_id';
+
 				$results = $wpdb->get_results( "SELECT l.id, l.transaction_id, m.meta_value as payment_date
-                                                FROM {$wpdb->prefix}rg_lead l
-                                                INNER JOIN {$wpdb->prefix}rg_lead_meta m ON l.id = m.lead_id
+                                                FROM {$entry_table} l
+                                                INNER JOIN {$entry_meta_table} m ON l.id = m.{$entry_id_column}
                                                 WHERE l.form_id={$form_id}
                                                 AND payment_status = 'Active'
                                                 AND meta_key = 'subscription_payment_date'
@@ -747,7 +761,7 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 
 	/**
 	 * Retrieve the settings to use when making the request to PayPal API.
-	 * 
+	 *
 	 * @param bool|array $feed False or the feed currently being processed.
 	 *
 	 * @return array
@@ -889,25 +903,25 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 			curl_setopt( $ch, CURLOPT_VERBOSE, 1 );
 
 
-			/***
+			/**
 			 * Determines if the cURL CURLOPT_SSL_VERIFYPEER option is enabled.
 			 *
 			 * @since 2.2
 			 *
-			 * @param bool is_enabled True to enable peer verification. False to bypass peer verification. Defaults to true.
+			 * @param bool $is_enabled True to enable peer verification. False to bypass peer verification. Defaults to true.
 			 */
 			$verify_peer = apply_filters( 'gform_paypalpaymentspro_verifypeer', true );
 			curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, $verify_peer );
 
-			/***
+			/**
 			 * Determines if the cURL CURLOPT_SSL_VERIFYHOST option is enabled.
 			 *
 			 * @since 2.2
 			 *
-			 * @param bool is_enabled True to enable host verification. False to bypass host verification. Defaults to true.
+			 * @param bool $is_enabled True to enable host verification. False to bypass host verification. Defaults to true.
 			 */
 			$verify_host = apply_filters( 'gform_paypalpaymentspro_verifyhost', true );
-			curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, $verify_host );
+			curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, $verify_host ? 2 : 0 );
 
 			curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
 			curl_setopt( $ch, CURLOPT_POST, 1 );
@@ -1117,6 +1131,58 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 		return $config;
 
 	}
+
+	/**
+	 * Get version of Gravity Forms database.
+	 *
+	 * @since  2.2.2
+	 * @access public
+	 *
+	 * @uses   GFFormsModel::get_database_version()
+	 *
+	 * @return string
+	 */
+	public static function get_gravityforms_db_version() {
+
+	    return method_exists( 'GFFormsModel', 'get_database_version' ) ? GFFormsModel::get_database_version() : GFForms::$version;
+
+    }
+
+	/**
+	 * Get name for entry table.
+	 *
+	 * @since  2.2.2
+	 * @access public
+	 *
+	 * @uses   GFFormsModel::get_entry_table_name()
+	 * @uses   GFFormsModel::get_lead_table_name()
+	 * @uses   GFPayPalPaymentsPro::get_gravityforms_db_version()
+	 *
+	 * @return string
+	 */
+	public static function get_entry_table_name() {
+
+		return version_compare( self::get_gravityforms_db_version(), '2.3-dev-1', '<' ) ? GFFormsModel::get_lead_table_name() : GFFormsModel::get_entry_table_name();
+
+    }
+
+	/**
+	 * Get name for entry meta table.
+	 *
+	 * @since  2.2.2
+	 * @access public
+	 *
+	 * @uses   GFFormsModel::get_entry_meta_table_name()
+	 * @uses   GFFormsModel::get_lead_meta_table_name()
+	 * @uses   GFPayPalPaymentsPro::get_gravityforms_db_version()
+	 *
+	 * @return string
+	 */
+	public static function get_entry_meta_table_name() {
+
+		return version_compare( self::get_gravityforms_db_version(), '2.3-dev-1', '<' ) ? GFFormsModel::get_lead_meta_table_name() : GFFormsModel::get_entry_meta_table_name();
+
+    }
 
 
 	// # TO FRAMEWORK MIGRATION ----------------------------------------------------------------------------------------
@@ -1358,7 +1424,7 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 
 	/**
 	 * Copy transactions from the old add-on table to the framework table.
-	 * 
+	 *
 	 * @return bool
 	 */
 	public function copy_transactions() {
@@ -1381,7 +1447,7 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 
 	/**
 	 * Returns the name of the old table used to store transactions.
-	 * 
+	 *
 	 * @return string
 	 */
 	public function get_old_transaction_table_name() {
@@ -1392,7 +1458,7 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 
 	/**
 	 * Returns the name of the framework table used to store transactions.
-	 * 
+	 *
 	 * @return string
 	 */
 	public function get_new_transaction_table_name() {
