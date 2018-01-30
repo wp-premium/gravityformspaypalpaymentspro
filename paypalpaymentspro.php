@@ -3,7 +3,7 @@
 Plugin Name: Gravity Forms PayPal Payments Pro Add-On
 Plugin URI: http://www.gravityforms.com
 Description: Integrates Gravity Forms with PayPal Payments Pro, enabling end users to purchase goods and services through Gravity Forms.
-Version: 2.2
+Version: 2.3
 Author: rocketgenius
 Author URI: http://www.rocketgenius.com
 Text Domain: gravityformspaypalpaymentspro
@@ -28,7 +28,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-define( 'GF_PAYPALPAYMENTSPRO_VERSION', '2.2' );
+define( 'GF_PAYPALPAYMENTSPRO_VERSION', '2.3' );
 
 add_action( 'gform_loaded', array( 'GF_PayPalPaymentsPro_Bootstrap', 'load' ), 5 );
 
