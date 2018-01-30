@@ -1,6 +1,12 @@
+# 2.3 | 2018-01-26
+   - Added support for Gravity Forms 2.3.
+   - Fixed a PHP notice which would occur when sending a request to PayPal.
+
+
 # 2.2 | 2017-04-28
    - Added security enhancements.
    - Added translations.
+
 
 # 2.1.1 | 2016-12-01
    - Fixed strings for translations
