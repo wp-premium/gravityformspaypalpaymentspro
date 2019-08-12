@@ -1,5 +1,10 @@
 <?php
 
+// don't load directly
+if ( ! defined( 'ABSPATH' ) ) {
+	die();
+}
+
 GFForms::include_payment_addon_framework();
 
 class GFPayPalPaymentsPro extends GFPaymentAddOn {
@@ -642,8 +647,6 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 	 * Check subscription status; Active subscriptions will be checked to see if their status needs to be updated.
 	 */
 	public function check_status() {
-		// this is where we will check subscription status and update as needed
-		$this->log_debug( __METHOD__ . '(): Checking subscription status.' );
 
 		// getting all PayPal Payments Pro subscription feeds
 		$recurring_feeds = $this->get_feeds_by_slug( $this->_slug );
@@ -652,6 +655,8 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 
 			// process renewal's if authorize.net feed is subscription feed
 			if ( $feed['meta']['transactionType'] == 'subscription' ) {
+
+				$this->log_debug( __METHOD__ . "(): Checking subscription statuses for feed (#{$feed['id']} - {$feed['meta']['feedName']})." );
 
 				$form_id   = $feed['form_id'];
 				$querytime = strtotime( gmdate( 'Y-m-d' ) );
@@ -673,10 +678,16 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
                                                 AND meta_key = 'subscription_payment_date'
                                                 AND meta_value < '{$querydate}'" );
 
-				$this->log_debug( __METHOD__ . '(): Leads with late payment.' );
+				if ( empty( $results ) ) {
+					$this->log_debug( __METHOD__ . '(): No entries with late payment.' );
+					continue;
+				}
+
+				$this->log_debug( __METHOD__ . '(): Entries with late payment: ' .  count( $results ) );
+
 				foreach ( $results as $result ) {
 
-					$this->log_debug( print_r( $result ) );
+					$this->log_debug( __METHOD__ . '(): Processing entry => ' . print_r( $result, true ) );
 
 					//Getting entry
 					$entry_id = $result->id;
@@ -1186,105 +1197,6 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 
 
 	// # TO FRAMEWORK MIGRATION ----------------------------------------------------------------------------------------
-
-	/**
-	 * Initialize the admin specific hooks.
-	 */
-	public function init_admin() {
-		parent::init_admin();
-
-		add_filter( 'gform_addon_navigation', array( $this, 'maybe_create_menu' ) );
-	}
-
-	/**
-	 * Maybe add the temporary plugin page to the menu.
-	 *
-	 * @param array $menus
-	 *
-	 * @return array
-	 */
-	public function maybe_create_menu( $menus ) {
-
-		$current_user                   = wp_get_current_user();
-		$dismiss_paypalpaymentspro_menu = get_metadata( 'user', $current_user->ID, 'dismiss_paypalpaymentspro_menu', true );
-		if ( $dismiss_paypalpaymentspro_menu != '1' ) {
-			$menus[] = array( 'name'       => $this->_slug,
-			                  'label'      => $this->get_short_title(),
-			                  'callback'   => array( $this, 'temporary_plugin_page' ),
-			                  'permission' => $this->_capabilities_form_settings
-			);
-		}
-
-		return $menus;
-	}
-
-	/**
-	 * Initialize the AJAX hooks.
-	 */
-	public function init_ajax() {
-		parent::init_ajax();
-
-		add_action( 'wp_ajax_gf_dismiss_paypalpaymentspro_menu', array( $this, 'ajax_dismiss_menu' ) );
-	}
-
-	/**
-	 * Update the user meta to indicate they shouldn't see the temporary plugin page again.
-	 */
-	public function ajax_dismiss_menu() {
-
-		$current_user = wp_get_current_user();
-		update_metadata( 'user', $current_user->ID, 'dismiss_paypalpaymentspro_menu', '1' );
-	}
-
-	/**
-	 * Display a temporary page explaining how feeds are now managed.
-	 */
-	public function temporary_plugin_page() {
-		?>
-		<script type="text/javascript">
-			function dismissMenu() {
-				jQuery('#gf_spinner').show();
-				jQuery.post(ajaxurl, {
-							action: "gf_dismiss_paypalpaymentspro_menu"
-						},
-						function (response) {
-							document.location.href = '?page=gf_edit_forms';
-							jQuery('#gf_spinner').hide();
-						}
-				);
-
-			}
-		</script>
-
-		<div class="wrap about-wrap">
-			<h1><?php esc_html_e( 'PayPal Payments Pro Add-On v2.0', 'gravityformspaypalpaymentspro' ) ?></h1>
-
-			<div class="about-text"><?php esc_html_e( 'Thank you for updating! The new version of the Gravity Forms PayPal Payments Pro Add-On makes changes to how you manage your PayPal Payments Pro integration.', 'gravityformspaypalpaymentspro' ) ?></div>
-			<div class="changelog">
-				<hr/>
-				<div class="feature-section col two-col">
-					<div class="col-1">
-						<h3><?php esc_html_e( 'Manage PayPal Payments Pro Contextually', 'gravityformspaypalpaymentspro' ) ?></h3>
-
-						<p><?php esc_html_e( 'PayPal Payments Pro Feeds are now accessed via the PayPal Payments Pro sub-menu within the Form Settings for the Form with which you would like to integrate PayPal Payments Pro.', 'gravityformspaypalpaymentspro' ) ?></p>
-					</div>
-					<div class="col-2 last-feature">
-						<img src="http://gravityforms.s3.amazonaws.com/webimages/AddonNotice/NewPayPalPaymentsPro2.png">
-					</div>
-				</div>
-
-				<hr/>
-
-				<form method="post" id="dismiss_menu_form" style="margin-top: 20px;">
-					<input type="checkbox" name="dismiss_paypalpaymentspro_menu" value="1" onclick="dismissMenu();">
-					<label><?php esc_html_e( 'I understand this change, dismiss this message!', 'gravityformspaypalpaymentspro' ) ?></label>
-					<img id="gf_spinner" src="<?php echo GFCommon::get_base_url() . '/images/spinner.gif' ?>" alt="<?php esc_html_e( 'Please wait...', 'gravityformspaypalpaymentspro' ) ?>" style="display:none;"/>
-				</form>
-
-			</div>
-		</div>
-		<?php
-	}
 
 	/**
 	 * Checks if a previous version was installed and if the feeds need migrating to the framework structure.
