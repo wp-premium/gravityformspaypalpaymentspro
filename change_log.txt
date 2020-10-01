@@ -1,3 +1,14 @@
+### 2.6 | 2020-09-24
+- Added support for Gravity Forms 2.5.
+- Removed the extra authentication check from the hourly subscription status cron job.
+
+
+### 2.5 | 2020-05-13
+- Added translations for Hebrew, Hindi, Japanese, and Turkish.
+- Updated API request logging when an error occurs to include the curl error message and debug info.
+- Fixed an issue with subscriptions where recurring payments aren’t recorded in the entry notes.
+
+
 ### 2.4 | 2019-08-07
 - Added security enhancements.
 - Added GPL to plugin header.

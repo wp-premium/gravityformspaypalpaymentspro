@@ -1,17 +1,17 @@
-# Copyright (C) 2019 rocketgenius
-# This file is distributed under the same license as the Gravity Forms PayPal Payments Pro Add-On plugin.
+# Copyright (C) 2020 Gravity Forms
+# This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: Gravity Forms PayPal Payments Pro Add-On 2.4\n"
+"Project-Id-Version: Gravity Forms PayPal Payments Pro Add-On 2.6\n"
 "Report-Msgid-Bugs-To: https://gravityforms.com/support\n"
 "Last-Translator: Gravity Forms <support@gravityforms.com>\n"
 "Language-Team: Gravity Forms <support@gravityforms.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2019-08-07T14:06:29+00:00\n"
+"POT-Creation-Date: 2020-09-24T17:55:02+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.2.0\n"
+"X-Generator: WP-CLI 2.4.0\n"
 "X-Domain: gravityformspaypalpaymentspro\n"
 
 #. Plugin Name of the plugin
@@ -19,7 +19,8 @@ msgid "Gravity Forms PayPal Payments Pro Add-On"
 msgstr ""
 
 #. Plugin URI of the plugin
-msgid "https://www.gravityforms.com"
+#. Author URI of the plugin
+msgid "https://gravityforms.com"
 msgstr ""
 
 #. Description of the plugin
@@ -27,211 +28,225 @@ msgid "Integrates Gravity Forms with PayPal Payments Pro, enabling end users to 
 msgstr ""
 
 #. Author of the plugin
-msgid "rocketgenius"
+msgid "Gravity Forms"
 msgstr ""
 
-#. Author URI of the plugin
-msgid "https://www.rocketgenius.com"
+#: class-gf-paypalpaymentspro.php:124
+msgid "Entry registered for subscription status checks by the cron job."
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:68
-msgid "PayPal Payments Pro is a merchant account and gateway in one. Use Gravity Forms to collect payment information and automatically integrate to your PayPal Payments Pro account. If you don't have a PayPal Payments Pro account, you can %ssign up for one here.%s"
+#: class-gf-paypalpaymentspro.php:133
+msgid "Subscription has expired."
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:75
-#: class-gf-paypalpaymentspro.php:296
-#: class-gf-paypalpaymentspro.php:299
-msgid "API"
+#: class-gf-paypalpaymentspro.php:142
+msgid "Subscription has been cancelled."
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:80
-msgid "Live"
-msgstr ""
-
-#: class-gf-paypalpaymentspro.php:84
-#: class-gf-paypalpaymentspro.php:306
-msgid "Sandbox"
-msgstr ""
-
-#: class-gf-paypalpaymentspro.php:92
-#: class-gf-paypalpaymentspro.php:314
-#: class-gf-paypalpaymentspro.php:318
-msgid "Username"
-msgstr ""
-
-#: class-gf-paypalpaymentspro.php:99
-#: class-gf-paypalpaymentspro.php:323
-#: class-gf-paypalpaymentspro.php:327
-msgid "Password"
-msgstr ""
-
-#: class-gf-paypalpaymentspro.php:106
-#: class-gf-paypalpaymentspro.php:332
-msgid "Vendor (optional)"
-msgstr ""
-
-#: class-gf-paypalpaymentspro.php:113
-#: class-gf-paypalpaymentspro.php:341
-#: class-gf-paypalpaymentspro.php:345
-msgid "Partner"
-msgstr ""
-
-#: class-gf-paypalpaymentspro.php:163
-msgid "Your merchant login ID if different from Username above."
-msgstr ""
-
-#: class-gf-paypalpaymentspro.php:187
-msgid "If you have registered with a PayPal Reseller, enter their ID above."
-msgstr ""
-
-#: class-gf-paypalpaymentspro.php:225
-#: class-gf-paypalpaymentspro.php:237
-msgid "Pay Period"
-msgstr ""
-
-#: class-gf-paypalpaymentspro.php:228
-msgid "Weekly"
-msgstr ""
-
-#: class-gf-paypalpaymentspro.php:229
-msgid "Every Two Weeks"
+#: class-gf-paypalpaymentspro.php:204
+msgid "Historical transactions added: %s."
 msgstr ""
 
 #: class-gf-paypalpaymentspro.php:230
-msgid "Twice Every Month"
+msgid "PayPal Payments Pro is a merchant account and gateway in one. Use Gravity Forms to collect payment information and automatically integrate to your PayPal Payments Pro account. If you don't have a PayPal Payments Pro account, you can %ssign up for one here.%s"
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:231
-msgid "Every Four Weeks"
+#: class-gf-paypalpaymentspro.php:238
+#: class-gf-paypalpaymentspro.php:455
+#: class-gf-paypalpaymentspro.php:457
+msgid "API"
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:232
-msgid "Monthly"
-msgstr ""
-
-#: class-gf-paypalpaymentspro.php:233
-msgid "Quarterly"
-msgstr ""
-
-#: class-gf-paypalpaymentspro.php:234
-msgid "Twice Every Year"
-msgstr ""
-
-#: class-gf-paypalpaymentspro.php:235
-msgid "Yearly"
-msgstr ""
-
-#: class-gf-paypalpaymentspro.php:237
-msgid "Select pay period.  This determines how often the recurring payment should occur."
+#: class-gf-paypalpaymentspro.php:243
+msgid "Live"
 msgstr ""
 
 #: class-gf-paypalpaymentspro.php:247
-#: class-gf-paypalpaymentspro.php:249
-msgid "Posts"
+#: class-gf-paypalpaymentspro.php:464
+msgid "Sandbox"
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:249
-msgid "Enable this option if you would like to change the post status when a subscription is cancelled."
+#: class-gf-paypalpaymentspro.php:255
+#: class-gf-paypalpaymentspro.php:474
+#: class-gf-paypalpaymentspro.php:477
+msgid "Username"
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:252
-msgid "Update Post when subscription is cancelled."
+#: class-gf-paypalpaymentspro.php:262
+#: class-gf-paypalpaymentspro.php:484
+#: class-gf-paypalpaymentspro.php:487
+msgid "Password"
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:266
-#: class-gf-paypalpaymentspro.php:268
-msgid "API Settings"
+#: class-gf-paypalpaymentspro.php:269
+#: class-gf-paypalpaymentspro.php:494
+msgid "Vendor (optional)"
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:268
-msgid "Override the settings provided on the PayPal Payments Pro Settings page and use these instead for this feed."
+#: class-gf-paypalpaymentspro.php:270
+#: class-gf-paypalpaymentspro.php:496
+msgid "Your merchant login ID if different from Username above."
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:299
-msgid "Select either Production or Sandbox API to override the chosen mode on the PayPal Payments Pro Settings page."
+#: class-gf-paypalpaymentspro.php:277
+#: class-gf-paypalpaymentspro.php:505
+#: class-gf-paypalpaymentspro.php:509
+msgid "Partner"
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:302
-msgid "Production"
+#: class-gf-paypalpaymentspro.php:278
+#: class-gf-paypalpaymentspro.php:506
+msgid "If you have registered with a PayPal Reseller, enter their ID above."
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:318
-msgid "Enter a new value to override the Username on the PayPal Payments Pro Settings page."
+#: class-gf-paypalpaymentspro.php:342
+#: class-gf-paypalpaymentspro.php:378
+msgid "Pay Period"
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:327
-msgid "Enter a new value to override the Password on the PayPal Payments Pro Settings page."
+#: class-gf-paypalpaymentspro.php:346
+msgid "Weekly"
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:336
-msgid "Vendor"
+#: class-gf-paypalpaymentspro.php:350
+msgid "Every Two Weeks"
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:336
-msgid "Enter a new value to override the Vendor on the PayPal Payments Pro Settings page."
+#: class-gf-paypalpaymentspro.php:354
+msgid "Twice Every Month"
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:345
-msgid "Enter a new value to override the Partner on the PayPal Payments Pro Settings page."
+#: class-gf-paypalpaymentspro.php:358
+msgid "Every Four Weeks"
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:373
-msgid "Mark Post as Draft"
+#: class-gf-paypalpaymentspro.php:362
+msgid "Monthly"
+msgstr ""
+
+#: class-gf-paypalpaymentspro.php:366
+msgid "Quarterly"
+msgstr ""
+
+#: class-gf-paypalpaymentspro.php:370
+msgid "Twice Every Year"
 msgstr ""
 
 #: class-gf-paypalpaymentspro.php:374
-msgid "Delete Post"
+msgid "Yearly"
+msgstr ""
+
+#: class-gf-paypalpaymentspro.php:378
+msgid "Select pay period.  This determines how often the recurring payment should occur."
+msgstr ""
+
+#: class-gf-paypalpaymentspro.php:388
+#: class-gf-paypalpaymentspro.php:390
+msgid "Posts"
+msgstr ""
+
+#: class-gf-paypalpaymentspro.php:390
+msgid "Enable this option if you would like to change the post status when a subscription is cancelled."
 msgstr ""
 
 #: class-gf-paypalpaymentspro.php:393
+msgid "Update Post when subscription is cancelled."
+msgstr ""
+
+#: class-gf-paypalpaymentspro.php:442
+#: class-gf-paypalpaymentspro.php:444
+msgid "API Settings"
+msgstr ""
+
+#: class-gf-paypalpaymentspro.php:444
+msgid "Override the settings provided on the PayPal Payments Pro Settings page and use these instead for this feed."
+msgstr ""
+
+#: class-gf-paypalpaymentspro.php:457
+msgid "Select either Production or Sandbox API to override the chosen mode on the PayPal Payments Pro Settings page."
+msgstr ""
+
+#: class-gf-paypalpaymentspro.php:460
+msgid "Production"
+msgstr ""
+
+#: class-gf-paypalpaymentspro.php:477
+msgid "Enter a new value to override the Username on the PayPal Payments Pro Settings page."
+msgstr ""
+
+#: class-gf-paypalpaymentspro.php:487
+msgid "Enter a new value to override the Password on the PayPal Payments Pro Settings page."
+msgstr ""
+
+#: class-gf-paypalpaymentspro.php:498
+msgid "Vendor"
+msgstr ""
+
+#: class-gf-paypalpaymentspro.php:498
+msgid "Enter a new value to override the Vendor on the PayPal Payments Pro Settings page."
+msgstr ""
+
+#: class-gf-paypalpaymentspro.php:509
+msgid "Enter a new value to override the Partner on the PayPal Payments Pro Settings page."
+msgstr ""
+
+#: class-gf-paypalpaymentspro.php:540
+msgid "Mark Post as Draft"
+msgstr ""
+
+#: class-gf-paypalpaymentspro.php:541
+msgid "Delete Post"
+msgstr ""
+
+#: class-gf-paypalpaymentspro.php:560
 msgid "Last Name"
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:398
+#: class-gf-paypalpaymentspro.php:565
 msgid "First Name"
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:419
+#: class-gf-paypalpaymentspro.php:586
 msgid "Payment Completed"
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:420
+#: class-gf-paypalpaymentspro.php:587
 msgid "Subscription Created"
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:421
+#: class-gf-paypalpaymentspro.php:588
 msgid "Subscription Canceled"
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:422
+#: class-gf-paypalpaymentspro.php:589
 msgid "Subscription Expired"
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:423
+#: class-gf-paypalpaymentspro.php:590
 msgid "Subscription Payment Added"
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:511
-#: class-gf-paypalpaymentspro.php:601
+#: class-gf-paypalpaymentspro.php:678
+#: class-gf-paypalpaymentspro.php:768
 msgid "Please enter your credit card information."
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:1076
+#: class-gf-paypalpaymentspro.php:1391
 msgid "This credit card has been declined by your bank. Please use another form of payment."
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:1080
+#: class-gf-paypalpaymentspro.php:1395
 msgid "The credit card has expired."
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:1084
+#: class-gf-paypalpaymentspro.php:1399
 msgid "The merchant does not accept this type of credit card."
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:1089
+#: class-gf-paypalpaymentspro.php:1404
 msgid "There was an error processing your credit card. Please verify the information and try again."
 msgstr ""
 
-#: class-gf-paypalpaymentspro.php:1093
+#: class-gf-paypalpaymentspro.php:1408
 msgid "There was an error processing your request. Your credit card was not charged. Please try again."
 msgstr ""
