@@ -7,18 +7,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /*
 Plugin Name: Gravity Forms PayPal Payments Pro Add-On
-Plugin URI: https://www.gravityforms.com
+Plugin URI: https://gravityforms.com
 Description: Integrates Gravity Forms with PayPal Payments Pro, enabling end users to purchase goods and services through Gravity Forms.
-Version: 2.4
-Author: rocketgenius
-Author URI: https://www.rocketgenius.com
+Version: 2.6
+Author: Gravity Forms
+Author URI: https://gravityforms.com
 License: GPL-2.0+
 Text Domain: gravityformspaypalpaymentspro
 Domain Path: /languages
 
 ------------------------------------------------------------------------
 
-Copyright 2009-2016 Rocketgenius, Inc.
+Copyright 2009-2020 Rocketgenius, Inc.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-define( 'GF_PAYPALPAYMENTSPRO_VERSION', '2.4' );
+define( 'GF_PAYPALPAYMENTSPRO_VERSION', '2.6' );
 
 add_action( 'gform_loaded', array( 'GF_PayPalPaymentsPro_Bootstrap', 'load' ), 5 );
 

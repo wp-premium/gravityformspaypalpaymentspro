@@ -57,7 +57,169 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 
 	// # ADMIN FUNCTIONS -----------------------------------------------------------------------------------------------
 
+	/**
+	 * Includes the admin hooks.
+	 *
+	 * @since 2.5
+	 */
+	public function init_admin() {
+		parent::init_admin();
+		add_filter( 'gform_entry_detail_meta_boxes', array( $this, 'filter_entry_detail_meta_boxes' ), 50, 2 );
+	}
+
+	/**
+	 * Triggers updating of the entry payment status for subscriptions started before the cron job was fixed.
+	 *
+	 * @since 2.5
+	 *
+	 * @param array $meta_boxes The properties for the meta boxes.
+	 * @param array $entry      The entry currently being viewed/edited.
+	 *
+	 * @return array
+	 */
+	public function filter_entry_detail_meta_boxes( $meta_boxes, $entry ) {
+		if ( ! empty( $meta_boxes['payment'] ) && $this->has_subscription( $entry ) ) {
+			$this->maybe_update_subscription_status( $entry );
+		}
+
+		return $meta_boxes;
+	}
+
+	/**
+	 * Updates the entry payment status and sets the entry meta so the cron can check the status of active subscriptions.
+	 *
+	 * @since 2.5
+	 *
+	 * @param array $entry The entry currently being viewed/edited.
+	 */
+	public function maybe_update_subscription_status( $entry ) {
+		$this->log_debug( __METHOD__ . "(): Checking if entry #{$entry['id']} needs to be registered with the cron for subscription status checks." );
+
+		if ( rgar( $entry, 'payment_status' ) !== 'Active' ) {
+			$this->log_debug( __METHOD__ . '(): aborting; not active' );
+
+			return;
+		}
+
+		$meta_key = $this->get_cron_entry_meta_key();
+		if ( ! empty( gform_get_meta( $entry['id'], $meta_key ) ) ) {
+			$this->log_debug( __METHOD__ . '(): aborting; already has meta key' );
+
+			return;
+		}
+
+		$feed    = $this->get_payment_feed( $entry );
+		$profile = $this->get_subscription_status( $entry['transaction_id'], $feed, $entry['form_id'] );
+		if ( rgar( $profile, 'RESULT' ) !== '0' ) {
+			return;
+		}
+
+		$this->insert_subscription_transactions( $entry, $feed );
+
+		switch ( strtolower( rgar( $profile, 'STATUS' ) ) ) {
+			case 'active' :
+				$next_timestamp = $this->get_timestamp_from_mdy( $profile['NEXTPAYMENT'] );
+				gform_update_meta( $entry['id'], $meta_key, $next_timestamp );
+				$this->log_debug( sprintf( '%s(): %s meta for entry #%d set to %d.', __METHOD__, $meta_key, $entry['id'], $next_timestamp ) );
+				$this->add_note( $entry['id'], esc_html__( 'Entry registered for subscription status checks by the cron job.', 'gravityformspaypalpaymentspro' ) );
+
+				return;
+
+			case 'expired' :
+				GFAPI::update_entry_property( $entry['id'], 'payment_status', 'Expired' );
+				$entry['payment_status'] = 'Expired';
+				GFEntryDetail::set_current_entry( $entry );
+				$this->log_debug( sprintf( '%s(): Entry #%d subscription status changed to expired.', __METHOD__, $entry['id'] ) );
+				$this->add_note( $entry['id'], esc_html__( 'Subscription has expired.', 'gravityformspaypalpaymentspro' ) );
+
+				return;
+
+			default:
+				GFAPI::update_entry_property( $entry['id'], 'payment_status', 'Cancelled' );
+				$entry['payment_status'] = 'Cancelled';
+				GFEntryDetail::set_current_entry( $entry );
+				$this->log_debug( sprintf( '%s(): Entry #%d subscription status changed to cancelled.', __METHOD__, $entry['id'] ) );
+				$this->add_note( $entry['id'], esc_html__( 'Subscription has been cancelled.', 'gravityformspaypalpaymentspro' ) );
+
+				return;
+		}
+	}
+
+	/**
+	 * Adds the subscription transactions to the database.
+	 *
+	 * The setup fee was added during form submission by GFPayPalPaymentsPro::process_subscription().
+	 *
+	 * @since 2.5
+	 *
+	 * @param array       $entry The current entry.
+	 * @param array|false $feed  The feed which created the subscription.
+	 */
+	public function insert_subscription_transactions( $entry, $feed ) {
+		$transactions = $this->get_subscription_transactions( $entry['transaction_id'], $feed, $entry['form_id'] );
+
+		if ( empty( $transactions ) ) {
+			return;
+		}
+
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'gf_addon_payment_transaction';
+
+		$inserted = array();
+
+		foreach ( $transactions as $transaction ) {
+			if ( ! $this->is_valid_transaction_state( $transaction ) ) {
+				continue;
+			}
+
+			$date = date( 'Y-m-d H:i:s', strtotime( $transaction['TRANSTIME'] ) );
+
+			$inserted[] = sprintf( '%s (%s)', $transaction['PNREF'], $date );
+
+			$wpdb->insert(
+				$table,
+				array(
+					'lead_id'          => $entry['id'],
+					'transaction_type' => 'payment',
+					'transaction_id'   => $transaction['PNREF'],
+					'subscription_id'  => $entry['transaction_id'],
+					'is_recurring'     => 1,
+					'amount'           => $transaction['AMT'],
+					'date_created'     => $date,
+				),
+				array(
+					'%d',
+					'%s',
+					'%s',
+					'%s',
+					'%d',
+					'%f',
+					'%s',
+				)
+			);
+		}
+
+		if ( ! empty( $inserted ) ) {
+			$this->add_note( $entry['id'], sprintf( esc_html__( 'Historical transactions added: %s.', 'gravityformspaypalpaymentspro' ), implode( ', ', $inserted ) ), 'success' );
+		}
+
+	}
+
 	// ------- Plugin settings -------
+
+	/**
+	 * Return the plugin's icon for the plugin/form settings menu.
+	 *
+	 * @since 2.4
+	 *
+	 * @return string
+	 */
+	public function get_menu_icon() {
+
+		return file_get_contents( $this->get_base_path() . '/images/menu-icon.svg' );
+
+	}
 
 	/**
 	 * Configures the settings which should be rendered on the add-on settings tab.
@@ -66,55 +228,58 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 	 */
 	public function plugin_settings_fields() {
 		$description = '<p style="text-align: left;">' . sprintf( esc_html__( 'PayPal Payments Pro is a merchant account and gateway in one. Use Gravity Forms to collect payment information and automatically integrate to your PayPal Payments Pro account. If you don\'t have a PayPal Payments Pro account, you can %ssign up for one here.%s', 'gravityformspaypalpaymentspro' ), '<a href="https://registration.paypal.com/welcomePage.do?bundleCode=C3&country=US&partner=PayPal" target="_blank">', '</a>' ) . '</p>';
+
 		return array(
 			array(
 				'description' => $description,
 				'fields'      => array(
 					array(
-						'name'    		=> 'mode',
-						'label'   		=> esc_html__( 'API', 'gravityformspaypalpaymentspro' ),
-						'type'    		=> 'radio',
+						'name'          => 'mode',
+						'label'         => esc_html__( 'API', 'gravityformspaypalpaymentspro' ),
+						'type'          => 'radio',
 						'default_value' => 'production',
 						'choices'       => array(
 							array(
-								'label' 	=> esc_html__( 'Live', 'gravityformspaypalpaymentspro' ),
-								'value' 	=> 'production',
+								'label' => esc_html__( 'Live', 'gravityformspaypalpaymentspro' ),
+								'value' => 'production',
 							),
 							array(
-								'label'    	=> esc_html__( 'Sandbox', 'gravityformspaypalpaymentspro' ),
-								'value'    	=> 'test',
+								'label' => esc_html__( 'Sandbox', 'gravityformspaypalpaymentspro' ),
+								'value' => 'test',
 							),
 						),
 						'horizontal'    => true,
 					),
 					array(
-						'name'    	 		=> 'username',
-						'label'    			=> esc_html__( 'Username', 'gravityformspaypalpaymentspro' ),
-						'type'	   			=> 'text',
-						'class'    			=> 'medium',
+						'name'              => 'username',
+						'label'             => esc_html__( 'Username', 'gravityformspaypalpaymentspro' ),
+						'type'              => 'text',
+						'class'             => 'medium',
 						'feedback_callback' => array( $this, 'is_valid_api_credentials' ),
 					),
 					array(
-						'name'     => 'password',
-						'label'    => esc_html__( 'Password', 'gravityformspaypalpaymentspro' ),
-						'type'	   => 'password',
-						'class'    => 'medium',
-						'feedback_callback'	=> array( $this, 'check_valid_api_credential_setting' ),
+						'name'              => 'password',
+						'label'             => esc_html__( 'Password', 'gravityformspaypalpaymentspro' ),
+						'type'              => 'password',
+						'class'             => 'medium',
+						'feedback_callback' => array( $this, 'check_valid_api_credential_setting' ),
 					),
 					array(
-						'name'     => 'vendor',
-						'label'    => esc_html__( 'Vendor (optional)', 'gravityformspaypalpaymentspro' ),
-						'type'	   => 'vendor',
-						'class'    => 'medium',
-						'feedback_callback'	=> array( $this, 'check_valid_api_credential_setting' ),
+						'name'              => 'vendor',
+						'label'             => esc_html__( 'Vendor (optional)', 'gravityformspaypalpaymentspro' ),
+						'description'       => esc_html__( 'Your merchant login ID if different from Username above.', 'gravityformspaypalpaymentspro' ),
+						'type'              => 'text',
+						'class'             => 'medium',
+						'feedback_callback' => array( $this, 'check_valid_api_credential_setting' ),
 					),
 					array(
-						'name'     		=> 'partner',
-						'label'    		=> esc_html__( 'Partner', 'gravityformspaypalpaymentspro' ),
-						'type'	   		=> 'partner',
-						'class'    		=> 'medium',
-						'default_value'	=> 'PayPal',
-						'feedback_callback'	=> array( $this, 'check_valid_api_credential_setting' ),
+						'name'              => 'partner',
+						'label'             => esc_html__( 'Partner', 'gravityformspaypalpaymentspro' ),
+						'description'       => esc_html__( 'If you have registered with a PayPal Reseller, enter their ID above.', 'gravityformspaypalpaymentspro' ),
+						'type'              => 'text',
+						'class'             => 'medium',
+						'default_value'     => 'PayPal',
+						'feedback_callback' => array( $this, 'check_valid_api_credential_setting' ),
 					),
 				),
 			),
@@ -146,54 +311,6 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 
 	}
 
-	/**
-	 * Define the markup for the vendor type field.
-	 *
-	 * @param array     $field The field properties.
-	 * @param bool|true $echo  Should the setting markup be echoed.
-	 *
-	 * @return string|void
-	 */
-	public function settings_vendor( $field, $echo = true ) {
-
-		$field['type'] = 'text';
-
-		$vendor_field = $this->settings_text( $field, false );
-
-		$caption = '<small>' . sprintf( esc_html__( 'Your merchant login ID if different from Username above.', 'gravityformspaypalpaymentspro' ) ) . '</small>';
-
-		if ( $echo ) {
-			echo $vendor_field . '</br>' . $caption;
-		}
-
-		return $vendor_field . '</br>' . $caption;
-
-	}
-
-	/**
-	 * Define the markup for the partner type field.
-	 *
-	 * @param array     $field The field properties.
-	 * @param bool|true $echo  Should the setting markup be echoed.
-	 *
-	 * @return string|void
-	 */
-	public function settings_partner( $field, $echo = true ) {
-
-		$field['type'] = 'text';
-
-		$partner_field = $this->settings_text( $field, false );
-
-		$caption = '<small>' . sprintf( esc_html__( 'If you have registered with a PayPal Reseller, enter their ID above.', 'gravityformspaypalpaymentspro' ) ) . '</small>';
-
-		if ( $echo ) {
-			echo $partner_field . '</br>' . $caption;
-		}
-
-		return $partner_field . '</br>' . $caption;
-
-	}
-
 	//-------- Form Settings ---------
 
 	/**
@@ -221,20 +338,44 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 		// Add pay period if subscription.
 		if ( $this->get_setting( 'transactionType' ) == 'subscription' ) {
 			$pay_period_field = array(
-				'name'     => 'payPeriod',
-				'label'    => esc_html__( 'Pay Period', 'gravityformspaypalpaymentspro' ),
-				'type'     => 'select',
+				'name'    => 'payPeriod',
+				'label'   => esc_html__( 'Pay Period', 'gravityformspaypalpaymentspro' ),
+				'type'    => 'select',
 				'choices' => array(
-								array( 'label' => esc_html__( 'Weekly', 'gravityformspaypalpaymentspro' ), 'value' => 'WEEK' ),
-								array( 'label' => esc_html__( 'Every Two Weeks', 'gravityformspaypalpaymentspro' ), 'value' => 'BIWK' ),
-								array( 'label' => esc_html__( 'Twice Every Month', 'gravityformspaypalpaymentspro' ), 'value' => 'SMMO' ),
-								array( 'label' => esc_html__( 'Every Four Weeks', 'gravityformspaypalpaymentspro' ), 'value' => 'FRWK' ),
-								array( 'label' => esc_html__( 'Monthly', 'gravityformspaypalpaymentspro' ), 'value' => 'MONT' ),
-								array( 'label' => esc_html__( 'Quarterly', 'gravityformspaypalpaymentspro' ), 'value' => 'QTER' ),
-								array( 'label' => esc_html__( 'Twice Every Year', 'gravityformspaypalpaymentspro' ), 'value' => 'SMYR' ),
-								array( 'label' => esc_html__( 'Yearly', 'gravityformspaypalpaymentspro' ), 'value' => 'YEAR' ),
-							),
-				'tooltip'  => '<h6>' . esc_html__( 'Pay Period', 'gravityformspaypalpaymentspro' ) . '</h6>' . esc_html__( 'Select pay period.  This determines how often the recurring payment should occur.', 'gravityformspaypalpaymentspro' ),
+					array(
+						'label' => esc_html__( 'Weekly', 'gravityformspaypalpaymentspro' ),
+						'value' => 'WEEK',
+					),
+					array(
+						'label' => esc_html__( 'Every Two Weeks', 'gravityformspaypalpaymentspro' ),
+						'value' => 'BIWK',
+					),
+					array(
+						'label' => esc_html__( 'Twice Every Month', 'gravityformspaypalpaymentspro' ),
+						'value' => 'SMMO',
+					),
+					array(
+						'label' => esc_html__( 'Every Four Weeks', 'gravityformspaypalpaymentspro' ),
+						'value' => 'FRWK',
+					),
+					array(
+						'label' => esc_html__( 'Monthly', 'gravityformspaypalpaymentspro' ),
+						'value' => 'MONT',
+					),
+					array(
+						'label' => esc_html__( 'Quarterly', 'gravityformspaypalpaymentspro' ),
+						'value' => 'QTER',
+					),
+					array(
+						'label' => esc_html__( 'Twice Every Year', 'gravityformspaypalpaymentspro' ),
+						'value' => 'SMYR',
+					),
+					array(
+						'label' => esc_html__( 'Yearly', 'gravityformspaypalpaymentspro' ),
+						'value' => 'YEAR',
+					),
+				),
+				'tooltip' => '<h6>' . esc_html__( 'Pay Period', 'gravityformspaypalpaymentspro' ) . '</h6>' . esc_html__( 'Select pay period.  This determines how often the recurring payment should occur.', 'gravityformspaypalpaymentspro' ),
 			);
 			$default_settings = $this->add_field_after( 'recurringAmount', $pay_period_field, $default_settings );
 
@@ -243,109 +384,135 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 
 			if ( GFCommon::has_post_field( $form['fields'] ) ) {
 				$post_settings = array(
-						'name'    => 'post_checkboxes',
-						'label'   => esc_html__( 'Posts', 'gravityformspaypalpaymentspro' ),
-						'type'    => 'checkbox',
-						'tooltip' => '<h6>' . esc_html__( 'Posts', 'gravityformspaypalpaymentspro' ) . '</h6>' . esc_html__( 'Enable this option if you would like to change the post status when a subscription is cancelled.', 'gravityformspaypalpaymentspro' ),
-						'choices' => array(
-								array(
-										'label'    => esc_html__( 'Update Post when subscription is cancelled.', 'gravityformspaypalpaymentspro' ),
-										'name'     => 'change_post_status',
-										'onChange' => 'var action = this.checked ? "draft" : ""; jQuery("#update_post_action").val(action);',
-								),
+					'name'    => 'post_checkboxes',
+					'label'   => esc_html__( 'Posts', 'gravityformspaypalpaymentspro' ),
+					'type'    => 'checkbox',
+					'tooltip' => '<h6>' . esc_html__( 'Posts', 'gravityformspaypalpaymentspro' ) . '</h6>' . esc_html__( 'Enable this option if you would like to change the post status when a subscription is cancelled.', 'gravityformspaypalpaymentspro' ),
+					'choices' => array(
+						array(
+							'label'    => esc_html__( 'Update Post when subscription is cancelled.', 'gravityformspaypalpaymentspro' ),
+							'name'     => 'change_post_status',
+							'onChange' => 'var action = this.checked ? "draft" : ""; jQuery("#update_post_action").val(action);',
 						),
+					),
 				);
 
 				$default_settings = $this->add_field_after( 'billingInformation', $post_settings, $default_settings );
 			}
 		}
 
-		$fields = array(
-			array(
-				'name'      => 'apiSettingsEnabled',
-				'label'     => esc_html__( 'API Settings', 'gravityformspaypalpaymentspro' ),
-				'type'      => 'checkbox',
-				'tooltip' 	=> '<h6>' . esc_html__( 'API Settings', 'gravityformspaypalpaymentspro' ) . '</h6>' . esc_html__( 'Override the settings provided on the PayPal Payments Pro Settings page and use these instead for this feed.', 'gravityformspaypalpaymentspro' ),
-				'onchange' => "if(jQuery(this).prop('checked')){
-										jQuery('#gaddon-setting-row-overrideMode').show();
-										jQuery('#gaddon-setting-row-overrideUsername').show();
-										jQuery('#gaddon-setting-row-overridePassword').show();
-										jQuery('#gaddon-setting-row-overrideVendor').show();
-										jQuery('#gaddon-setting-row-overridePartner').show();
-									} else {
-										jQuery('#gaddon-setting-row-overrideMode').hide();
-										jQuery('#gaddon-setting-row-overrideUsername').hide();
-										jQuery('#gaddon-setting-row-overridePassword').hide();
-										jQuery('#gaddon-setting-row-overrideVendor').hide();
-										jQuery('#gaddon-setting-row-overridePartner').hide();
-										jQuery('#overrideUsername').val('');
-										jQuery('#overridePassword').val('');
-										jQuery('#overrideVendor').val('');
-										//jQuery('#overridePartner').val('');
-										jQuery('i').removeClass('icon-check fa-check gf_valid');
-									}",
-				'choices' 	=> array(
+		if ( $this->is_gravityforms_supported( '2.5-dev-1' ) ) {
+			$dependency            = array(
+				'live'   => true,
+				'fields' => array(
 					array(
-						'label' => 'Override Default Settings',
-						'name'	=> 'apiSettingsEnabled',
-					),
-				)
-			),
-			array(
-				'name'    		=> 'overrideMode',
-				'label'   		=> esc_html__( 'API', 'gravityformspaypalpaymentspro' ),
-				'type'    		=> 'radio',
-				'hidden'  		=> ! $this->get_setting( 'apiSettingsEnabled' ),
-				'tooltip' 		=> '<h6>' . esc_html__( 'API', 'gravityformspaypalpaymentspro' ) . '</h6>' . esc_html__( 'Select either Production or Sandbox API to override the chosen mode on the PayPal Payments Pro Settings page.', 'gravityformspaypalpaymentspro' ),
-				'choices'       => array(
-					array(
-						'label' 	=> esc_html__( 'Production', 'gravityformspaypalpaymentspro' ),
-						'value' 	=> 'production',
-					),
-					array(
-						'label'    	=> esc_html__( 'Sandbox', 'gravityformspaypalpaymentspro' ),
-						'value'    	=> 'test',
+						'field'  => 'apiSettingsEnabled',
+						'values' => array( 'apiSettingsEnabled' ),
 					),
 				),
-				'horizontal'    => true,
+			);
+			$api_settings_onchange = '';
+			$hidden                = false;
+		} else {
+			$dependency            = false;
+			$api_settings_onchange = "if(jQuery(this).prop('checked')){
+			                                        jQuery('#gaddon-setting-row-overrideMode').show();
+			                                        jQuery('#gaddon-setting-row-overrideUsername').show();
+			                                        jQuery('#gaddon-setting-row-overridePassword').show();
+			                                        jQuery('#gaddon-setting-row-overrideVendor').show();
+			                                        jQuery('#gaddon-setting-row-overridePartner').show();
+			                                    } else {
+			                                        jQuery('#gaddon-setting-row-overrideMode').hide();
+			                                        jQuery('#gaddon-setting-row-overrideUsername').hide();
+			                                        jQuery('#gaddon-setting-row-overridePassword').hide();
+			                                        jQuery('#gaddon-setting-row-overrideVendor').hide();
+			                                        jQuery('#gaddon-setting-row-overridePartner').hide();
+			                                        jQuery('#overrideUsername').val('');
+			                                        jQuery('#overridePassword').val('');
+			                                        jQuery('#overrideVendor').val('');
+			                                        //jQuery('#overridePartner').val('');
+			                                        jQuery('i').removeClass('icon-check fa-check gf_valid');
+			                                    }";
+			$hidden                = ! $this->get_setting( 'apiSettingsEnabled' );
+		}
+
+		$fields = array(
+			array(
+				'name'     => 'apiSettingsEnabled',
+				'label'    => esc_html__( 'API Settings', 'gravityformspaypalpaymentspro' ),
+				'type'     => 'checkbox',
+				'tooltip'  => '<h6>' . esc_html__( 'API Settings', 'gravityformspaypalpaymentspro' ) . '</h6>' . esc_html__( 'Override the settings provided on the PayPal Payments Pro Settings page and use these instead for this feed.', 'gravityformspaypalpaymentspro' ),
+				'choices'  => array(
+					array(
+						'label' => 'Override Default Settings',
+						'name'  => 'apiSettingsEnabled',
+					),
+				),
+				'onchange' => $api_settings_onchange,
 			),
 			array(
-				'name'     => 'overrideUsername',
-				'label'    => esc_html__( 'Username', 'gravityformspaypalpaymentspro' ),
-				'type'     => 'text',
-				'class'    => 'medium',
-				'hidden'  		=> ! $this->get_setting( 'apiSettingsEnabled' ),
-				'tooltip' 		=> '<h6>' . esc_html__( 'Username', 'gravityformspaypalpaymentspro' ) . '</h6>' . esc_html__( 'Enter a new value to override the Username on the PayPal Payments Pro Settings page.', 'gravityformspaypalpaymentspro' ),
+				'name'       => 'overrideMode',
+				'label'      => esc_html__( 'API', 'gravityformspaypalpaymentspro' ),
+				'type'       => 'radio',
+				'tooltip'    => '<h6>' . esc_html__( 'API', 'gravityformspaypalpaymentspro' ) . '</h6>' . esc_html__( 'Select either Production or Sandbox API to override the chosen mode on the PayPal Payments Pro Settings page.', 'gravityformspaypalpaymentspro' ),
+				'choices'    => array(
+					array(
+						'label' => esc_html__( 'Production', 'gravityformspaypalpaymentspro' ),
+						'value' => 'production',
+					),
+					array(
+						'label' => esc_html__( 'Sandbox', 'gravityformspaypalpaymentspro' ),
+						'value' => 'test',
+					),
+				),
+				'horizontal' => true,
+				'dependency' => $dependency,
+				'hidden'     => $hidden,
+			),
+			array(
+				'name'              => 'overrideUsername',
+				'label'             => esc_html__( 'Username', 'gravityformspaypalpaymentspro' ),
+				'type'              => 'text',
+				'class'             => 'medium',
+				'tooltip'           => '<h6>' . esc_html__( 'Username', 'gravityformspaypalpaymentspro' ) . '</h6>' . esc_html__( 'Enter a new value to override the Username on the PayPal Payments Pro Settings page.', 'gravityformspaypalpaymentspro' ),
 				'feedback_callback' => array( $this, 'is_valid_override_credentials' ),
+				'dependency'        => $dependency,
+				'hidden'            => $hidden,
 			),
 			array(
-				'name'     => 'overridePassword',
-				'label'    => esc_html__( 'Password', 'gravityformspaypalpaymentspro' ),
-				'type'     => 'password',
-				'class'    => 'medium',
-				'hidden'  		=> ! $this->get_setting( 'apiSettingsEnabled' ),
-				'tooltip' 		=> '<h6>' . esc_html__( 'Password', 'gravityformspaypalpaymentspro' ) . '</h6>' . esc_html__( 'Enter a new value to override the Password on the PayPal Payments Pro Settings page.', 'gravityformspaypalpaymentspro' ),
+				'name'              => 'overridePassword',
+				'label'             => esc_html__( 'Password', 'gravityformspaypalpaymentspro' ),
+				'type'              => 'password',
+				'class'             => 'medium',
+				'tooltip'           => '<h6>' . esc_html__( 'Password', 'gravityformspaypalpaymentspro' ) . '</h6>' . esc_html__( 'Enter a new value to override the Password on the PayPal Payments Pro Settings page.', 'gravityformspaypalpaymentspro' ),
 				'feedback_callback' => array( $this, 'check_valid_override_credential_setting' ),
+				'dependency'        => $dependency,
+				'hidden'            => $hidden,
 			),
 			array(
-				'name'     => 'overrideVendor',
-				'label'    => esc_html__( 'Vendor (optional)', 'gravityformspaypalpaymentspro' ),
-				'type'     => 'vendor',
-				'class'    => 'medium',
-				'hidden'  		=> ! $this->get_setting( 'apiSettingsEnabled' ),
-				'tooltip' 		=> '<h6>' . esc_html__( 'Vendor', 'gravityformspaypalpaymentspro' ) . '</h6>' . esc_html__( 'Enter a new value to override the Vendor on the PayPal Payments Pro Settings page.', 'gravityformspaypalpaymentspro' ),
+				'name'              => 'overrideVendor',
+				'label'             => esc_html__( 'Vendor (optional)', 'gravityformspaypalpaymentspro' ),
+				'type'              => 'text',
+				'description'       => esc_html__( 'Your merchant login ID if different from Username above.', 'gravityformspaypalpaymentspro' ),
+				'class'             => 'medium',
+				'tooltip'           => '<h6>' . esc_html__( 'Vendor', 'gravityformspaypalpaymentspro' ) . '</h6>' . esc_html__( 'Enter a new value to override the Vendor on the PayPal Payments Pro Settings page.', 'gravityformspaypalpaymentspro' ),
 				'feedback_callback' => array( $this, 'check_valid_override_credential_setting' ),
+				'dependency'        => $dependency,
+				'hidden'            => $hidden,
 			),
 			array(
-				'name'			=> 'overridePartner',
-				'label'    		=> esc_html__( 'Partner', 'gravityformspaypalpaymentspro' ),
-				'type'     		=> 'partner',
-				'class'    		=> 'medium',
-				'hidden'  		=> ! $this->get_setting( 'apiSettingsEnabled' ),
-				'tooltip' 		=> '<h6>' . esc_html__( 'Partner', 'gravityformspaypalpaymentspro' ) . '</h6>' . esc_html__( 'Enter a new value to override the Partner on the PayPal Payments Pro Settings page.', 'gravityformspaypalpaymentspro' ),
-				'default_value'	=> 'PayPal',
+				'name'              => 'overridePartner',
+				'label'             => esc_html__( 'Partner', 'gravityformspaypalpaymentspro' ),
+				'description'       => esc_html__( 'If you have registered with a PayPal Reseller, enter their ID above.', 'gravityformspaypalpaymentspro' ),
+				'type'              => 'text',
+				'class'             => 'medium',
+				'tooltip'           => '<h6>' . esc_html__( 'Partner', 'gravityformspaypalpaymentspro' ) . '</h6>' . esc_html__( 'Enter a new value to override the Partner on the PayPal Payments Pro Settings page.', 'gravityformspaypalpaymentspro' ),
+				'default_value'     => 'PayPal',
 				'feedback_callback' => array( $this, 'check_valid_override_credential_setting' ),
+				'dependency'        => $dependency,
+				'hidden'            => $hidden,
 			),
+
 		);
 
 		$default_settings = $this->add_field_after( 'conditionalLogic', $fields, $default_settings );
@@ -618,16 +785,18 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 						'amount'         => $submission_data['setup_fee'],
 				);
 				$subscription_result = array(
-						'is_success'       => true,
-						'subscription_id'  => $subscription_id,
-						'captured_payment' => $captured_payment,
-						'amount'           => $subscription['AMT'],
+					'is_success'              => true,
+					'subscription_id'         => $subscription_id,
+					'captured_payment'        => $captured_payment,
+					'amount'                  => $subscription['AMT'],
+					'subscription_start_date' => $subscription['START'],
 				);
 			} else {
 				$subscription_result = array(
-					'is_success'      => true,
-					'subscription_id' => $subscription_id,
-					'amount'          => $subscription['AMT'],
+					'is_success'              => true,
+					'subscription_id'         => $subscription_id,
+					'amount'                  => $subscription['AMT'],
+					'subscription_start_date' => $subscription['START'],
 				);
 			}
 
@@ -640,131 +809,274 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 		return $subscription_result;
 	}
 
+	/**
+	 * Processes the subscription after the entry has been saved.
+	 *
+	 * @since 2.5 Overrode to fix cron not processing entries due to missing entry meta.
+	 *
+	 * @param array $authorization   The subscription details from GFPayPalPaymentsPro::subscribe().
+	 * @param array $feed            The feed which created the subscription.
+	 * @param array $submission_data The submission data which was used to create the subscription.
+	 * @param array $form            The form currently being processed.
+	 * @param array $entry           The entry currently being processed.
+	 *
+	 * @return array
+	 */
+	public function process_subscription( $authorization, $feed, $submission_data, $form, $entry ) {
+		gform_update_meta( $entry['id'], $this->get_cron_entry_meta_key(), $this->get_timestamp_from_mdy( $authorization['subscription']['subscription_start_date'] ) );
+
+		return parent::process_subscription( $authorization, $feed, $submission_data, $form, $entry );
+	}
+
 
 	// # CRON JOB ------------------------------------------------------------------------------------------------------
 
 	/**
 	 * Check subscription status; Active subscriptions will be checked to see if their status needs to be updated.
+	 *
+	 * @since 2.0
+	 * @since 2.5 Fixed cron not processing subscriptions created by v2.0+.
 	 */
 	public function check_status() {
 
-		// getting all PayPal Payments Pro subscription feeds
-		$recurring_feeds = $this->get_feeds_by_slug( $this->_slug );
+		$query_timestamp = time();
+		$meta_key        = $this->get_cron_entry_meta_key();
 
-		foreach ( $recurring_feeds as $feed ) {
+		$this->log_debug( sprintf( '%s(): Searching for entries with active subscriptions and %s meta less than %d.', __METHOD__, $meta_key, $query_timestamp ) );
 
-			// process renewal's if authorize.net feed is subscription feed
-			if ( $feed['meta']['transactionType'] == 'subscription' ) {
+		// Get entry table names and entry ID column.
+		$entry_table      = self::get_entry_table_name();
+		$entry_meta_table = self::get_entry_meta_table_name();
+		$entry_id_column  = version_compare( self::get_gravityforms_db_version(), '2.3-dev-1', '<' ) ? 'lead_id' : 'entry_id';
 
-				$this->log_debug( __METHOD__ . "(): Checking subscription statuses for feed (#{$feed['id']} - {$feed['meta']['feedName']})." );
+		global $wpdb;
 
-				$form_id   = $feed['form_id'];
-				$querytime = strtotime( gmdate( 'Y-m-d' ) );
-				$querydate = gmdate( 'mdY', $querytime );
+		$results = $wpdb->get_results( $wpdb->prepare(
+			"SELECT l.id, l.form_id, l.transaction_id, m.meta_value as payment_date
+			FROM {$entry_table} l INNER JOIN {$entry_meta_table} m ON l.id = m.{$entry_id_column}
+			WHERE l.transaction_type = 2 AND l.payment_status = 'Active' AND meta_key = %s AND meta_value < %d",
+			$meta_key, $query_timestamp
+		) );
 
-				// finding leads with a late payment date
-				global $wpdb;
+		if ( empty( $results ) ) {
+			$this->log_debug( __METHOD__ . '(): No matching entries found.' );
 
-				// Get entry table names and entry ID column.
-				$entry_table      = self::get_entry_table_name();
-				$entry_meta_table = self::get_entry_meta_table_name();
-				$entry_id_column  = version_compare( self::get_gravityforms_db_version(), '2.3-dev-1', '<' ) ? 'lead_id' : 'entry_id';
+			return;
+		}
 
-				$results = $wpdb->get_results( "SELECT l.id, l.transaction_id, m.meta_value as payment_date
-                                                FROM {$entry_table} l
-                                                INNER JOIN {$entry_meta_table} m ON l.id = m.{$entry_id_column}
-                                                WHERE l.form_id={$form_id}
-                                                AND payment_status = 'Active'
-                                                AND meta_key = 'subscription_payment_date'
-                                                AND meta_value < '{$querydate}'" );
+		$this->log_debug( sprintf( '%s(): Checking subscription statuses for %d entries.', __METHOD__, count( $results ) ) );
 
-				if ( empty( $results ) ) {
-					$this->log_debug( __METHOD__ . '(): No entries with late payment.' );
-					continue;
-				}
+		foreach ( $results as $result ) {
+			$this->log_debug( __METHOD__ . '(): Processing entry => ' . json_encode( $result ) );
 
-				$this->log_debug( __METHOD__ . '(): Entries with late payment: ' .  count( $results ) );
+			$entry_id = $result->id;
+			$feed     = $this->get_payment_feed( array( 'id' => $entry_id ) );
+			$profile  = $this->get_subscription_status( $result->transaction_id, $feed, $result->form_id );
 
-				foreach ( $results as $result ) {
+			if ( rgar( $profile, 'RESULT' ) !== '0' ) {
+				continue;
+			}
 
-					$this->log_debug( __METHOD__ . '(): Processing entry => ' . print_r( $result, true ) );
+			$entry           = GFAPI::get_entry( $entry_id );
+			$status          = $profile['STATUS'];
+			$subscription_id = $profile['PROFILEID'];
 
-					//Getting entry
-					$entry_id = $result->id;
-					$entry    = GFAPI::get_entry( $entry_id );
-
-					$subscription_id = $result->transaction_id;
-					// Get the subscription profile status
-					$profile_status_request                  = array();
-					$profile_status_request['TRXTYPE']       = 'R';
-					$profile_status_request['TENDER']        = 'C';
-					$profile_status_request['ACTION']        = 'I';
-					$profile_status_request['ORIGPROFILEID'] = $subscription_id;
-					//$profile_status_request['PAYMENTHISTORY'] = 'Y';
-
-					$settings       = $this->get_api_settings( $feed );
-					$profile_status = $this->post_to_payflow( $profile_status_request, $settings, $form_id );
-
-					$status          = $profile_status['STATUS'];
-					$subscription_id = $profile_status['PROFILEID'];
-
-					switch ( strtolower( $status ) ) {
-						case 'active' :
-
-							// getting new payment date and count
-							$new_payment_date   = $profile_status['NEXTPAYMENT'];
-							$new_payment_count  = $profile_status['NEXTPAYMENTNUM'] - 1;
-							$new_payment_amount = $profile_status['AMT'];
-
-							if ( $new_payment_date > $querydate ) {
-
-								// update subscription payment and lead information
-								gform_update_meta( $entry_id, 'subscription_payment_count', $new_payment_count );
-								gform_update_meta( $entry_id, 'subscription_payment_date', $new_payment_date );
-
-								$action = array(
-									'amount'          => $new_payment_amount,
-									'subscription_id' => $subscription_id,
-									'type'            => 'add_subscription_payment'
-								);
-								$this->add_subscription_payment( $entry, $action );
-
-								//deprecated
-								do_action( 'gform_paypalpaymentspro_after_subscription_payment', $entry, $subscription_id, $profile_status['AMT'] );
-							}
-
-							break;
-
-						case 'expired' :
-
-							$action = array(
-								'subscription_id' => $subscription_id,
-								'type'            => 'expire_subscription'
-							);
-							$this->expire_subscription( $entry, $action );
-
+			switch ( strtolower( $status ) ) {
+				case 'active' :
+					if ( $result->payment_date == $this->get_timestamp_from_mdy( $profile['LASTCHANGED'] ) ) {
+						gform_update_meta( $entry_id, $meta_key, $this->get_timestamp_from_mdy( $profile['NEXTPAYMENT'] ) );
+						if ( $this->process_last_subscription_transaction( $entry, $feed ) ) {
 							//deprecated
-							do_action( 'gform_paypalpaymentspro_subscription_expired', $entry, $subscription_id );
-
-							break;
-
-						case 'too many failures':
-						case 'deactivated by merchant':
-							$this->cancel_subscription( $entry, $feed );
-							do_action( 'gform_paypalpaymentspro_subscription_canceled', $entry, $subscription_id );
-							break;
-
-						default:
-							$this->cancel_subscription( $entry, $feed );
-							do_action( 'gform_paypalpaymentspro_subscription_canceled', $entry, $subscription_id );
-							break;
+							do_action( 'gform_paypalpaymentspro_after_subscription_payment', $entry, $subscription_id, $profile['AMT'] );
+						}
+					} else {
+						$this->log_debug( __METHOD__ . "(): No change to subscription for entry #{$entry_id}." );
 					}
 
-				}
+					break;
 
+				case 'expired' :
+					gform_delete_meta( $entry['id'], $meta_key );
+					$this->process_last_subscription_transaction( $entry, $feed );
+
+					$action = array(
+						'subscription_id' => $subscription_id,
+						'type'            => 'expire_subscription'
+					);
+					$this->expire_subscription( $entry, $action );
+
+					//deprecated
+					do_action( 'gform_paypalpaymentspro_subscription_expired', $entry, $subscription_id );
+
+					break;
+
+				default:
+					gform_delete_meta( $entry['id'], $meta_key );
+					$this->process_last_subscription_transaction( $entry, $feed );
+					$this->cancel_subscription( $entry, $feed );
+					do_action( 'gform_paypalpaymentspro_subscription_canceled', $entry, $subscription_id );
+					break;
 			}
 
 		}
+
+	}
+
+	/**
+	 * Returns the entry meta key used by the cron when finding the entries to process.
+	 *
+	 * @since 2.5
+	 *
+	 * @return string
+	 */
+	public function get_cron_entry_meta_key() {
+		return $this->get_slug() . '_cron_timestamp';
+	}
+
+	/**
+	 * Returns the timestamp for the supplied date string.
+	 *
+	 * @since 2.5
+	 *
+	 * @param string $mdy_date A date in the mdY format.
+	 *
+	 * @return false|int
+	 */
+	public function get_timestamp_from_mdy( $mdy_date ) {
+		preg_match( '/(?<month>[\d]{2})(?<day>[\d]{2})(?<year>[\d]{4})/', $mdy_date, $matches );
+		$date = sprintf( '%s-%s-%s 00:00:00', $matches['year'], $matches['month'], $matches['day'] );
+
+		return strtotime( $date );
+	}
+
+	/**
+	 * Requests the current status of the subscription from PayPal.
+	 *
+	 * @since 2.5
+	 *
+	 * @param string $profile_id          The PayPal profile ID for the subscription (The entry transaction ID).
+	 * @param array  $feed                The feed which created the subscription.
+	 * @param int    $form_id             The ID of the form which created the subscription.
+	 * @param bool   $return_transactions Indicates if the transactions should be returned instead of subscription profile. Default is false.
+	 *
+	 * @return array
+	 */
+	public function get_subscription_status( $profile_id, $feed, $form_id, $return_transactions = false ) {
+		$request_args = array(
+			'TRXTYPE'       => 'R',
+			'TENDER'        => 'C',
+			'ACTION'        => 'I',
+			'ORIGPROFILEID' => $profile_id,
+		);
+
+		if ( $return_transactions ) {
+			$request_args['PAYMENTHISTORY'] = 'Y';
+		}
+
+		return $this->post_to_payflow( $request_args, $this->get_api_settings( $feed ), $form_id );
+	}
+
+	/**
+	 * Requests the recurring transactions for the specified subscription from PayPal.
+	 *
+	 * @since 2.5
+	 *
+	 * @param string $profile_id The PayPal profile ID for the subscription (The entry transaction ID).
+	 * @param array  $feed       The feed which created the subscription.
+	 * @param int    $form_id    The ID of the form which created the subscription.
+	 *
+	 * @return array
+	 */
+	public function get_subscription_transactions( $profile_id, $feed, $form_id ) {
+		$transactions = array();
+		$history      = $this->get_subscription_status( $profile_id, $feed, $form_id, true );
+
+		if ( rgar( $history, 'RESULT' ) !== '0' ) {
+			return $transactions;
+		}
+
+		for ( $n = 1; ; $n ++ ) {
+			if ( ! isset( $history[ 'P_PNREF' . $n ] ) ) {
+				break;
+			}
+
+			$transactions[] = array(
+				'RESULT'    => rgar( $history, 'P_RESULT' . $n ),
+				'PNREF'     => rgar( $history, 'P_PNREF' . $n ),
+				'TRANSTATE' => rgar( $history, 'P_TRANSTATE' . $n ),
+				'TENDER'    => rgar( $history, 'P_TENDER' . $n ),
+				'TRANSTIME' => rgar( $history, 'P_TRANSTIME' . $n ),
+				'AMT'       => rgar( $history, 'P_AMT' . $n ),
+			);
+		}
+
+		return $transactions;
+	}
+
+	/**
+	 * Determines if the transaction was successful.
+	 *
+	 * @since 2.5
+	 *
+	 * @param array $transaction The transaction properties from PayPal.
+	 *
+	 * @return bool
+	 */
+	public function is_valid_transaction_state( $transaction ) {
+		return ( $transaction['RESULT'] === '0' && $transaction['TRANSTATE'] >= 6 && $transaction['TRANSTATE'] <= 8 );
+	}
+
+	/**
+	 * Adds the subscription payment.
+	 *
+	 * @since 2.5
+	 *
+	 * @param array $entry  The entry which created the subscription.
+	 * @param array $action The transaction data..
+	 */
+	public function add_subscription_payment( $entry, $action = array() ) {
+		$action['subscription_id'] = $entry['transaction_id'];
+		$action['type']            = 'add_subscription_payment';
+		parent::add_subscription_payment( $entry, $action );
+	}
+
+	/**
+	 * Handles processing a subscription payment or failure, if the transaction occurred within the last 24 hours.
+	 *
+	 * @since 2.5
+	 *
+	 * @param array $entry The entry which created the subscription.
+	 * @param array $feed  The feed which created the subscription.
+	 *
+	 * @return bool
+	 */
+	public function process_last_subscription_transaction( $entry, $feed ) {
+		$transactions = $this->get_subscription_transactions( $entry['transaction_id'], $feed, $entry['form_id'] );
+
+		if ( empty( $transactions ) ) {
+			return false;
+		}
+
+		$last_transaction          = end( $transactions );
+		$seconds_since_transaction = time() - strtotime( $last_transaction['TRANSTIME'] );
+
+		if ( $seconds_since_transaction < DAY_IN_SECONDS ) {
+			$action = array(
+				'amount'         => $last_transaction['AMT'],
+				'transaction_id' => $last_transaction['PNREF'],
+			);
+
+			if ( $this->is_valid_transaction_state( $last_transaction ) ) {
+				$this->add_subscription_payment( $entry, $action );
+
+				return true;
+			} else {
+				$action['type'] = 'fail_subscription_payment';
+				$this->fail_subscription_payment( $entry, $action );
+			}
+		}
+
+		return false;
 	}
 
 
@@ -986,14 +1298,17 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 						$httpParsedResponseAr[ $tmpAr[0] ] = $tmpAr[1];
 					}
 				}
-			}
-			$write_response_to_log = true;
-			if ( $nvp['TRXTYPE'] == 'A' && $httpParsedResponseAr['RESULT'] == '23' ) {
-				$write_response_to_log = false;
-			}
-			if ( $write_response_to_log ) {
-				$this->log_debug( __METHOD__ . '(): Response from PayPal: ' . $httpResponse );
-				$this->log_debug( __METHOD__ . '(): Friendly view of response: ' . print_r( $httpParsedResponseAr, true ) );
+
+				$write_response_to_log = true;
+				if ( $nvp['TRXTYPE'] == 'A' && $httpParsedResponseAr['RESULT'] == '23' ) {
+					$write_response_to_log = false;
+				}
+				if ( $write_response_to_log ) {
+					$this->log_debug( __METHOD__ . '(): Response from PayPal: ' . $httpResponse );
+					$this->log_debug( __METHOD__ . '(): Friendly view of response: ' . print_r( $httpParsedResponseAr, true ) );
+				}
+			} else {
+				$this->log_error( __METHOD__ . '(): Request failed; ' . curl_error( $ch ) . '; ' . json_encode( curl_getinfo( $ch ) ) );
 			}
 
 			return $httpParsedResponseAr;
@@ -1194,7 +1509,6 @@ class GFPayPalPaymentsPro extends GFPaymentAddOn {
 		return version_compare( self::get_gravityforms_db_version(), '2.3-dev-1', '<' ) ? GFFormsModel::get_lead_meta_table_name() : GFFormsModel::get_entry_meta_table_name();
 
     }
-
 
 	// # TO FRAMEWORK MIGRATION ----------------------------------------------------------------------------------------
 
